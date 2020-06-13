@@ -32,4 +32,4 @@ jobs:
         with:
           toolchain: stable
       - name: build ${{ matrix.os }}
-        run: cargo build --release --all-features
+        run: cargo build --release
