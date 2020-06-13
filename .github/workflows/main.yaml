@@ -38,4 +38,4 @@ jobs:
         with:
           toolchain: stable
       - name: build {matrix.os}
-        run: cargo build --relese --all-features
+        run: cargo build --release --all-features
