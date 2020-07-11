@@ -6,7 +6,6 @@
 step1
 ```shell
 make build
-make exec
 ```
 
 step2
