@@ -12,7 +12,7 @@ fn main() {
             .resource("/", |r| r.f(hello))
             .resource("/{name}", |r| r.f(hello))
     })
-    .bind("localhost:3000")
-    .expect("Can not bind to port 3000")
+    .bind("localhost:5000")
+    .expect("Can not bind to port 5000")
     .run();
 }
