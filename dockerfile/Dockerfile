@@ -33,3 +33,5 @@ RUN apt-get update && apt-get install -y \
 RUN rm -rf /root/.cache
 
 RUN locale-gen ja_JP.UTF-8
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
