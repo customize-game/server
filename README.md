@@ -19,3 +19,9 @@ step3
 ```shell
 make exec
 ```
+
+# Help
+
+```shell
+make help
+```
