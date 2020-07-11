@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     liblzma-dev \
     git \
-    nevim \
+    neovim \
     fish
 
 RUN rm -rf /root/.cache
