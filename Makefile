@@ -17,7 +17,7 @@ start:
 	@docker start Customize_game_server_container
 
 run:
-	@docker run -itd -v $$PWD/src:/opt/program -p 5000:5000 --name Customize_game_server_container customize_game_server:latest
+	@docker run -itd -v $$PWD:/opt/program -p 5000:5000 --name Customize_game_server_container customize_game_server:latest
 
 stop:
 	@docker stop Customize_game_server_container
@@ -33,4 +33,4 @@ update:
 
 remove:
 	@make stop
-	@docker rm Customize_game_server_container bash
+	@docker rm Customize_game_server_container
