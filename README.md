@@ -1,23 +1,39 @@
 # server
 
 
+
+![cross build](https://github.com/customize-game/server/workflows/cross%20build/badge.svg)
+
+
+
+
 # How to Use
 
-step1
-```shell
-make build
-```
+1. build images
 
-step2
-```shell
-make run
-```
+   ```shell
+   make build
+   ```
 
+   
 
-step3
-```shell
-make exec
-```
+2. create container from build image
+
+   ```shell
+   make run
+   ```
+
+   
+
+3. execute an interactive bash on the container
+
+   ```shell
+   make exec
+   ```
+
+   
+
+<br />
 
 # Help
 
