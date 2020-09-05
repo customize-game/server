@@ -1,18 +1,17 @@
-use actix_web::{server, App, HttpRequest, Responder};
+use actix_web::{get, App, HttpResponse, HttpServer};
 
 
-fn hello(req: &HttpRequest) -> impl Responder {
-    let to =req.match_info().get("name").unwrap_or("World");
-    format!("Hello {}!", to)
+#[get("/")]
+async fn index() ->Result<HttpResponse, actix_web::Error >{
+    let response_body = "Customize Game!";
+    Ok(HttpResponse::Ok().body(response_body))
 }
 
-fn main() {
-    server::new(|| {
-        App::new()
-            .resource("/", |r| r.f(hello))
-            .resource("/{name}", |r| r.f(hello))
-    })
-    .bind("localhost:5000")
-    .expect("Can not bind to port 5000")
-    .run();
+#[actix_rt::main]
+async fn main() -> Result<(), actix_web::Error> {
+    HttpServer::new(move || App::new().service(index))
+        .bind("0.0.0.0:5000")?
+        .run()
+        .await?;
+    Ok(())
 }
