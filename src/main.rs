@@ -28,9 +28,9 @@ async fn main() -> Result<(), actix_web::Error> {
     App::new()
         .service(index)
         .service(add)
-        )
-        .bind("0.0.0.0:5000")?
-        .run()
-        .await?;
+    )
+    .bind("0.0.0.0:5000")?
+    .run()
+    .await?;
     Ok(())
 }
