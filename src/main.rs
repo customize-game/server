@@ -1,4 +1,4 @@
-use actix_web::{get, post, App, HttpResponse, HttpServer};
+use actix_web::{get, post, delete, App, HttpResponse, HttpServer};
 
 
 struct DataEntry {
@@ -22,12 +22,19 @@ async fn add() ->Result<HttpResponse, actix_web::Error >{
     Ok(HttpResponse::Ok().body(response_body))
 }
 
+#[delete("/delete")]
+async fn delete() -> Result<HttpResponse, actix_web::Error> {
+    let response_body = "Delete method";
+    return Ok(HttpResponse::Ok().body(response_body));
+}
+
 #[actix_rt::main]
 async fn main() -> Result<(), actix_web::Error> {
     HttpServer::new(move || 
     App::new()
         .service(index)
         .service(add)
+        .service(delete)
     )
     .bind("0.0.0.0:5000")?
     .run()
