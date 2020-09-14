@@ -3,6 +3,7 @@ help:
 	@echo "build    => Build enviroment settings."
 	@echo "no-cache-build => Build enviroment settings. without cache"
 	@echo "start    => Start Container."
+	@echo "run    => Create Container."
 	@echo "update  => Fetch all changes from remote repo."
 	@echo "remove => Remove container."
 
