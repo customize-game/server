@@ -9,22 +9,17 @@ help:
 
 
 build:
-	@docker build . -f dockerfile/Dockerfile -t customize_game_server:latest
-
-no-cache-build:
-	@docker build . -f dockerfile/Dockerfile -t customize_game_server:latest --no-cache=true
+	@docker-compose up -d
 
 start:
-	@docker start Customize_game_server_container
+	@docker-compose start
 
-run:
-	@docker run -itd -v $$PWD:/opt/program -p 5000:5000 --name Customize_game_server_container customize_game_server:latest
 
 stop:
-	@docker stop Customize_game_server_container
+	@docker-compose stop
 
 exec:
-	@docker exec -it Customize_game_server_container bash
+	@docker exec -it customize_game_server bash
 
 update:
 	git pull origin master
