@@ -1,0 +1,7 @@
+CREATE DATEBASE player_info;
+USE player_info;
+
+CREATE TABLE IF NOT EXSISTS parts_data (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nameTEXT NOT NULL
+);
