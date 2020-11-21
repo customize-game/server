@@ -29,4 +29,4 @@ update:
 
 remove:
 	@make stop
-	@docker rm Customize_game_server_container
+	@docker-compose down
