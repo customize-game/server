@@ -10,6 +10,5 @@ edition = "2018"
 actix-web = "2.0.0"
 actix-rt = "1.1.1"
 thiserror = "1.0.20"
-r2d2 = "0.8.9"
-r2d2_sqlite = "0.17.0"
-r2d2_mysql = "18.0.0"
+diesel = { version = "*", features = ["mysql"] }
+dotenv = "0.15.0"

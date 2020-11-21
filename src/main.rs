@@ -1,5 +1,5 @@
 use actix_web::{get, post, delete, App, HttpResponse, HttpServer};
-
+mod utils;
 
 struct DataEntry {
     id: u32,
@@ -13,6 +13,7 @@ struct template {
 #[post("/")]
 async fn index() ->Result<HttpResponse, actix_web::Error >{
     let response_body = "Customize Game!";
+    utils::establish_connection();
     Ok(HttpResponse::Ok().body(response_body))
 }
 
