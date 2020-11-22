@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   db:
     image: mysql:8
@@ -14,7 +14,9 @@ services:
       context: .
       dockerfile: dockerfile/Dockerfile
     environment:
-      USER: user
+      UID: $UID
+      GID: $GID
+      CARGO_BUILD_TARGET_DIR: /opt/program/target
     ports:
       - 5000:5000
     stdin_open: true
