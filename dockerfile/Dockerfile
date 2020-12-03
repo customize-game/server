@@ -1,5 +1,6 @@
 FROM ubuntu:20.04
 
+
 RUN perl -p -i.bak -e 's%https?://(?!security)[^ \t]+%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g' /etc/apt/sources.list``
 RUN apt-get clean
 
@@ -41,4 +42,13 @@ RUN locale-gen ja_JP.UTF-8
 
 WORKDIR /opt/program
 
+RUN useradd -ms /bin/bash rust
+
+USER rust
+ENV HOME /home/rust
+ENV USER rust
+ENV SHELL /bin/bash
+WORKDIR /home/rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+RUN echo "export PATH=~/.cargo/bin:$PATH" >> ~/.bashrc
