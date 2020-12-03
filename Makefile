@@ -4,25 +4,30 @@ help:
 	@echo "no-cache-build => Build enviroment settings. without cache"
 	@echo "start    => Start Container."
 	@echo "run    => Create Container."
+	@echo "stop    => Stop Container."
+	@echo "exec_rust    => execute To Rust Container."
+	@echo "exec_mysql    => execute to  MySQL Container."
 	@echo "update  => Fetch all changes from remote repo."
-	@echo "remove => Remove container."
+	@echo "remove => Remove Container."
 
 
 build:
 	@docker-compose build
 
-up:
-	@docker-compose up -d
-
 start:
 	@docker-compose start
 
+run:
+	@docker-compose up -d
 
 stop:
 	@docker-compose stop
 
-exec:
+exec_rust:
 	@docker exec -it customize_game_server bash
+
+exec_mysql:
+	@docker exec -it customize_game_mysql bash
 
 update:
 	git pull origin master

@@ -32,7 +32,8 @@ RUN apt-get update && apt-get install -y \
     git \
     neovim \
     fish \
-    mysql-client
+    mysql-client \
+    libmysqlclient-dev
 
 RUN rm -rf /root/.cache
 
