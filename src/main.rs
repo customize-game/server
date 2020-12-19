@@ -1,12 +1,15 @@
 use actix_web::{ web, get, post, put, delete, App, HttpResponse, HttpRequest, HttpServer , Responder};
+use serde::{Serialize, Deserialize};
+
 mod utils;
 
+#[derive(Serialize, Deserialize, Debug)]
 struct DataEntry {
-    id: u32,
+    id: Option<u32>,
     text: String,
 }
 
-struct template {
+struct Template {
     entries: Vec<DataEntry>,
 }
 
@@ -20,11 +23,16 @@ async fn index() ->Result<HttpResponse, actix_web::Error >{
 // ロボット取得API
 // from manager
 #[get("/api/robots/{body_id}")]
-async fn get_robot_from_manager(web::Path(body_id) web::Path<u32>) -> impl Responder{
-    let body_id = req.match_info().get("body_id").unwrap();
+async fn get_robot_from_manager(web::Path(body_id): web::Path<u32>) -> impl Responder{
+    let body_id: Option<u32> = Some(body_id);
     let response_body = body_id;
     utils::establish_connection();
-    return Ok(HttpResponse::Ok().body(response_body));
+    HttpResponse::Ok().json(
+        DataEntry {
+            id: body_id,
+            text: String::from("sample"),
+        }
+    )
 }
 // ロボット一覧取得API
 // from manager
