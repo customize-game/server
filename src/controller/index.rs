@@ -1,8 +1,5 @@
-extern crate server;
-
 use actix_web::{get, HttpResponse, Responder};
 use serde::{Serialize, Deserialize};
-
 use server::utils; 
 
 #[derive(Serialize, Deserialize, Debug)]
