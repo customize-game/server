@@ -1,4 +1,4 @@
-use actix_web::{ web, get, post, put, delete, App, HttpResponse, HttpRequest, HttpServer , Responder};
+use actix_web::{get, post, HttpResponse, Responder};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -9,7 +9,7 @@ struct DataEntry {
 
 // ユーザ取得API
 #[get("/api/v1/game/users/myself")]
-pub async fn get_v1_user_from_game() -> impl Responder {
+pub async fn get_myself() -> impl Responder {
     let response_body = "get_v1_user_from_game";
     return HttpResponse::Ok().json(
         DataEntry {
@@ -21,7 +21,7 @@ pub async fn get_v1_user_from_game() -> impl Responder {
 
 // ユーザ登録API
 #[post("/api/v1/game/users")]
-pub async fn register_v1_user_from_game() -> impl Responder {
+pub async fn register() -> impl Responder {
     let response_body = "register_v1_user_from_game";
     return HttpResponse::Ok().json(
         DataEntry {

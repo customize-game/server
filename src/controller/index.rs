@@ -1,7 +1,9 @@
-use actix_web::{ web, get, post, put, delete, App, HttpResponse, HttpRequest, HttpServer , Responder};
+extern crate server;
+
+use actix_web::{get, HttpResponse, Responder};
 use serde::{Serialize, Deserialize};
 
-mod utils;
+use server::utils; 
 
 #[derive(Serialize, Deserialize, Debug)]
 struct DataEntry {

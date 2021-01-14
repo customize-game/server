@@ -1,4 +1,4 @@
-use actix_web::{ web, get, post, put, delete, App, HttpResponse, HttpRequest, HttpServer , Responder};
+use actix_web::{web, get, HttpResponse, Responder};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -9,7 +9,7 @@ struct DataEntry {
 
 // 装備取得API
 #[get("/api/v1/game/equipments/{equipment_id}")]
-pub async fn get_v1_equipment_from_game(web::Path(equipment_id): web::Path<u32>) -> impl Responder {
+pub async fn get_one(web::Path(equipment_id): web::Path<u32>) -> impl Responder {
     let equipment_id: Option<u32> = Some(equipment_id);
     let response_body = "get_v1_equipment_from_game";
     return HttpResponse::Ok().json(
@@ -22,7 +22,7 @@ pub async fn get_v1_equipment_from_game(web::Path(equipment_id): web::Path<u32>)
 
 // 装備一覧取得API
 #[get("/api/v1/game/equipments")]
-pub async fn get_v1_equipments_from_game() -> impl Responder {
+pub async fn get_list() -> impl Responder {
     let response_body = "get_v1_equipments_from_game";
     return HttpResponse::Ok().json(
         DataEntry {
