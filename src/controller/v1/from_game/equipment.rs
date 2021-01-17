@@ -60,13 +60,14 @@ pub async fn get_list(
     query: web::Query<GetListRequest>, // クエリパラメータ
 ) -> impl Responder {
     // リクエスト取得
+    let user_id = Some(3); // TODO 認証情報から取得
     let only_having = query.only_having;
     let sort_by = query.sort_by;
     let limit = query.limit;
     let offset = query.offset;
 
     // データ取得
-    let equipments = service::equipment::find_list(only_having, sort_by, limit, offset);
+    let equipments = service::equipment::find_list(user_id, only_having, sort_by, limit, offset);
 
     // レスポンス加工
     let mut response = GetListResponseEntry {

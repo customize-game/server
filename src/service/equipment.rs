@@ -28,6 +28,7 @@ pub fn find_by_id(_id: u32) -> EquipmentEntry {
 }
 
 pub fn find_list(
+  _user_id: Option<u32>,
   _only_having: Option<bool>,
   _sort_by: Option<u32>,
   _limit: Option<u32>,

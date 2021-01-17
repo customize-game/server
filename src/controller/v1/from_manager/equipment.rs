@@ -74,7 +74,7 @@ pub async fn get_list(
     let offset = query.offset;
 
     // データ取得
-    let equipments = service::equipment::find_list(only_having, sort_by, limit, offset);
+    let equipments = service::equipment::find_list(None, only_having, sort_by, limit, offset);
 
     // レスポンス加工
     let mut response = GetListResponseEntry {
