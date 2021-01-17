@@ -17,6 +17,7 @@ pub async fn get_one(
 ) -> impl Responder {
     // リクエスト取得
     let body_id: Option<u32> = Some(body_id);
+    
     // データ取得
     let robot = service::robot::find_by_id(body_id.unwrap());
 
