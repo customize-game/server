@@ -57,12 +57,7 @@ pub fn register(_name: String, _display_order: u32) -> ParameterEntry {
   };
 }
 
-pub fn update(
-  _id: u32,
-  _name: String,
-  _display_order: u32,
-  _is_deleted: bool,
-) -> ParameterEntry {
+pub fn update(_id: u32, _name: String, _display_order: u32, _is_deleted: bool) -> ParameterEntry {
   return ParameterEntry {
     id: 4,
     name: String::from("HP"),
