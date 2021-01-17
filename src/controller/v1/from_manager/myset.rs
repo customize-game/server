@@ -1,33 +1,84 @@
-use actix_web::{web, get, HttpResponse, Responder};
-use serde::{Serialize, Deserialize};
+use actix_web::{get, web, HttpResponse, Responder};
+use serde::{Deserialize, Serialize};
+use server::service;
 
+// マイセット取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
-struct DataEntry {
-    id: Option<u32>,
-    text: String,
+struct GetOneResponseEntry {
+    id: u32,      // マイセットID
+    name: String, // マイセット名
+    user_id: u32, // ユーザID
+    body_id: u32, // 素体ID
+    version: u32, // バージョン
 }
-
 // マイセット取得API
-#[get("/api/v1/manager/mysets/{mysets_id}")]
-pub async fn get_one(web::Path(mysets_id): web::Path<u32>) -> impl Responder {
-    let mysets_id: Option<u32> = Some(mysets_id);
-    let response_body = "get_v1_myset_from_manager";
-    return HttpResponse::Ok().json(
-        DataEntry {
-            id: mysets_id,
-            text: String::from(response_body),
-        }
-    );
+#[get("/api/v1/manager/mysets/{myset_id}")]
+pub async fn get_one(
+    web::Path(myset_id): web::Path<u32>, // マイセットID - パスパラメータ
+) -> impl Responder {
+    // リクエスト取得
+    let myset_id: Option<u32> = Some(myset_id);
+
+    // データ取得
+    let myset = service::myset::find_by_id(myset_id.unwrap());
+
+    // レスポンス加工
+    return HttpResponse::Ok().json(GetOneResponseEntry {
+        id: myset.id,
+        name: myset.name,
+        user_id: myset.user_id,
+        body_id: myset.body_id,
+        version: myset.version,
+    });
 }
 
+// マイセット一覧取得APIクエリパラメータ
+#[derive(Deserialize)]
+pub struct GetListRequest {
+    sort_by: Option<u32>, // ソート種別
+    limit: Option<u32>,   // 取得数
+    offset: Option<u32>,  // 取得位置
+}
+// マイセット一覧取得APIレスポンスのマイセット
+#[derive(Serialize, Deserialize, Debug)]
+struct MysetEntryOfGetListResponseEntry {
+    id: u32,      // 装備ID
+    name: String, // 装備名
+    user_id: u32, // ユーザID
+    body_id: u32, // 素体ID
+}
+// マイセット一覧取得APIレスポンス
+#[derive(Serialize, Deserialize, Debug)]
+struct GetListResponseEntry {
+    total_count: u32,                              // 合計数
+    mysets: Vec<MysetEntryOfGetListResponseEntry>, // マイセット一覧
+}
 // マイセット一覧取得API
 #[get("/api/v1/manager/mysets")]
-pub async fn get_list() -> impl Responder {
-    let response_body = "get_v1_mysets_from_manager";
-    return HttpResponse::Ok().json(
-        DataEntry {
-            id: Some(999),
-            text: String::from(response_body),
-        }
-    );
+pub async fn get_list(
+    query: web::Query<GetListRequest>, // クエリパラメータ
+) -> impl Responder {
+    // リクエスト取得
+    let user_id = None;
+    let sort_by = query.sort_by;
+    let limit = query.limit;
+    let offset = query.offset;
+
+    // データ取得
+    let mysets = service::myset::find_list(user_id, sort_by, limit, offset);
+
+    // レスポンス加工
+    let mut response = GetListResponseEntry {
+        total_count: mysets.total_count,
+        mysets: Vec::new(),
+    };
+    for myset in &mysets.mysets {
+        response.mysets.push(MysetEntryOfGetListResponseEntry {
+            id: myset.id,
+            name: myset.name.to_string(),
+            user_id: myset.user_id,
+            body_id: myset.body_id,
+        });
+    }
+    return HttpResponse::Ok().json(response);
 }
