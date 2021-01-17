@@ -16,7 +16,9 @@ struct GetOneResponseEntry {
 }
 // 装備取得API
 #[get("/api/v1/manager/equipments/{equipment_id}")]
-pub async fn get_one(web::Path(equipment_id): web::Path<u32>) -> impl Responder {
+pub async fn get_one(
+    web::Path(equipment_id): web::Path<u32>, // 装備ID - パスパラメータ
+) -> impl Responder {
     // リクエスト取得
     let equipment_id: Option<u32> = Some(equipment_id);
 
@@ -62,7 +64,9 @@ struct GetListResponseEntry {
 }
 // 装備一覧取得API
 #[get("/api/v1/manager/equipments")]
-pub async fn get_list(query: web::Query<GetListRequest>) -> impl Responder {
+pub async fn get_list(
+    query: web::Query<GetListRequest>, // クエリパラメータ
+) -> impl Responder {
     // リクエスト取得
     let only_having = Some(true);
     let sort_by = query.sort_by;
@@ -96,25 +100,28 @@ pub async fn get_list(query: web::Query<GetListRequest>) -> impl Responder {
 // 装備登録APIリクエスト
 #[derive(Deserialize)]
 pub struct RegisterRequestBody {
-    name: String,
-    ruby: String,
-    flavor: String,
-    add_socket_count: u32,
-    display_order: u32,
+    name: String,          // 装備名
+    ruby: String,          // ルビ
+    flavor: String,        // フレーバーテキスト
+    add_socket_count: u32, // 装備時に増えるソケット数
+    display_order: u32,    // 表示順
 }
 // 装備登録APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct RegisterResponseEntry {
-    id: u32,
-    name: String,
-    ruby: String,
-    flavor: String,
-    is_deleted: bool,
-    version: u32,
+    id: u32,            // 装備ID
+    name: String,       // 装備名
+    ruby: String,       // ルビ
+    flavor: String,     // フレーバーテキスト
+    display_order: u32, // 装備時に増えるソケット数
+    is_deleted: bool,   // 削除済みかどうか
+    version: u32,       // バージョン
 }
 // 装備登録API
 #[post("/api/v1/manager/equipments")]
-pub async fn register(request_body: web::Json<RegisterRequestBody>) -> impl Responder {
+pub async fn register(
+    request_body: web::Json<RegisterRequestBody>, // リクエストボディ
+) -> impl Responder {
     // リクエスト取得
     let name = request_body.name.to_string();
     let ruby = request_body.ruby.to_string();
@@ -132,6 +139,7 @@ pub async fn register(request_body: web::Json<RegisterRequestBody>) -> impl Resp
         name: equipment.name,
         ruby: equipment.ruby,
         flavor: equipment.flavor,
+        display_order: equipment.display_order,
         is_deleted: equipment.is_deleted,
         version: equipment.version,
     });
@@ -140,28 +148,29 @@ pub async fn register(request_body: web::Json<RegisterRequestBody>) -> impl Resp
 // 装備更新APIリクエスト
 #[derive(Deserialize)]
 pub struct UpdateRequestBody {
-    name: String,
-    ruby: String,
-    flavor: String,
-    add_socket_count: u32,
-    display_order: u32,
-    is_deleted: bool,
+    name: String,          // 装備名
+    ruby: String,          // ルビ
+    flavor: String,        // フレーバーテキスト
+    add_socket_count: u32, // 装備時に増えるソケット数
+    display_order: u32,    // 表示順
+    is_deleted: bool,      // 削除済みかどうか
 }
 // 装備更新APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct UpdateResponseEntry {
-    id: u32,
-    name: String,
-    ruby: String,
-    flavor: String,
-    is_deleted: bool,
-    version: u32,
+    id: u32,            // 装備ID
+    name: String,       // 装備名
+    ruby: String,       // ルビ
+    flavor: String,     // フレーバーテキスト
+    display_order: u32, // 表示順
+    is_deleted: bool,   // 削除済みかどうか
+    version: u32,       // バージョン
 }
 // 装備更新API
 #[put("/api/v1/manager/equipments/{equipment_id}")]
 pub async fn update(
-    web::Path(equipment_id): web::Path<u32>,
-    request_body: web::Json<UpdateRequestBody>,
+    web::Path(equipment_id): web::Path<u32>, // 装備ID - パスパラメータ
+    request_body: web::Json<UpdateRequestBody>, // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
     let equipment_id: Option<u32> = Some(equipment_id);
@@ -189,6 +198,7 @@ pub async fn update(
         name: equipment.name,
         ruby: equipment.ruby,
         flavor: equipment.flavor,
+        display_order: equipment.display_order,
         is_deleted: equipment.is_deleted,
         version: equipment.version,
     });
@@ -197,16 +207,19 @@ pub async fn update(
 // 装備削除APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct DeleteResponseEntry {
-    id: u32,
-    name: String,
-    ruby: String,
-    flavor: String,
-    is_deleted: bool,
-    version: u32,
+    id: u32,            // 装備ID
+    name: String,       // 装備名
+    ruby: String,       // ルビ
+    flavor: String,     // フレーバー
+    display_order: u32, // 表示順
+    is_deleted: bool,   // 削除済みかどうか
+    version: u32,       // バージョン
 }
 // 装備削除API
 #[delete("/api/v1/manager/equipments/{equipment_id}")]
-pub async fn delete(web::Path(equipment_id): web::Path<u32>) -> impl Responder {
+pub async fn delete(
+    web::Path(equipment_id): web::Path<u32>, // 装備ID - パスパラメータ
+) -> impl Responder {
     // リクエスト取得
     let equipment_id: Option<u32> = Some(equipment_id);
 
@@ -219,6 +232,7 @@ pub async fn delete(web::Path(equipment_id): web::Path<u32>) -> impl Responder {
         name: equipment.name,
         ruby: equipment.ruby,
         flavor: equipment.flavor,
+        display_order: equipment.display_order,
         is_deleted: equipment.is_deleted,
         version: equipment.version,
     });

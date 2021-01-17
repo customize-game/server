@@ -5,15 +5,17 @@ use server::service;
 // 装備取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseDataEntry {
-    id: u32,        // 装備ID
-    name: String,   // 装備名
-    ruby: String,   // ルビ
-    flavor: String, // フレーバーテキスト
+    id: u32,               // 装備ID
+    name: String,          // 装備名
+    ruby: String,          // ルビ
+    flavor: String,        // フレーバーテキスト
     add_socket_count: u32, // 装備時に増えるソケット数
 }
 // 装備取得API
 #[get("/api/v1/mobile/equipments/{equipment_id}")]
-pub async fn get_one(web::Path(equipment_id): web::Path<u32>) -> impl Responder {
+pub async fn get_one(
+    web::Path(equipment_id): web::Path<u32>, // 装備ID - パスパラメータ
+) -> impl Responder {
     // リクエスト取得
     let equipment_id: Option<u32> = Some(equipment_id);
 
@@ -41,10 +43,10 @@ pub struct GetListRequest {
 // 装備一覧取得APIレスポンスの装備
 #[derive(Serialize, Deserialize, Debug)]
 struct EquipmentEntryOfGetListResponseEntry {
-    id: u32,      // 装備ID
-    name: String, // 装備名
+    id: u32,              // 装備ID
+    name: String,         // 装備名
     having: Option<bool>, // 取得済みかどうか
-    display_order: u32, // 表示順
+    display_order: u32,   // 表示順
 }
 // 装備一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -54,7 +56,9 @@ struct GetListResponseEntry {
 }
 // 装備一覧取得API
 #[get("/api/v1/mobile/equipments")]
-pub async fn get_list(query: web::Query<GetListRequest>) -> impl Responder {
+pub async fn get_list(
+    query: web::Query<GetListRequest>, // クエリパラメータ
+) -> impl Responder {
     // リクエスト取得
     let only_having = query.only_having;
     let sort_by = query.sort_by;
