@@ -40,8 +40,8 @@ pub struct GetListRequest {
 // マイセット一覧取得APIレスポンスのマイセット
 #[derive(Serialize, Deserialize, Debug)]
 struct MysetEntryOfGetListResponseEntry {
-    id: u32,      // 装備ID
-    name: String, // 装備名
+    id: u32,      // マイセットID
+    name: String, // マイセット名
     body_id: u32, // 素体ID
 }
 // マイセット一覧取得APIレスポンス

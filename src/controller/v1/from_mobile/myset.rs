@@ -1,5 +1,5 @@
-use actix_web::{web, get, post, put, delete, HttpResponse, Responder};
-use serde::{Serialize, Deserialize};
+use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
+use serde::{Deserialize, Serialize};
 use server::service;
 
 // マイセット取得APIレスポンス
@@ -15,20 +15,20 @@ struct GetOneResponseEntry {
 pub async fn get_one(
     web::Path(myset_id): web::Path<u32>, // マイセットID - パスパラメータ
 ) -> impl Responder {
-     // リクエスト取得
-     let myset_id: Option<u32> = Some(myset_id);
+    // リクエスト取得
+    let myset_id: Option<u32> = Some(myset_id);
 
-     // データ取得
-     let myset = service::myset::find_by_id(myset_id.unwrap());
- 
-     // レスポンス加工
-     return HttpResponse::Ok().json(GetOneResponseEntry {
-         id: myset.id,
-         name: myset.name,
-         body_id: myset.body_id,
-         version: myset.version,
-     });
- }
+    // データ取得
+    let myset = service::myset::find_by_id(myset_id.unwrap());
+
+    // レスポンス加工
+    return HttpResponse::Ok().json(GetOneResponseEntry {
+        id: myset.id,
+        name: myset.name,
+        body_id: myset.body_id,
+        version: myset.version,
+    });
+}
 
 // マイセット一覧取得APIクエリパラメータ
 #[derive(Deserialize)]

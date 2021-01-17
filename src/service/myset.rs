@@ -48,11 +48,7 @@ pub fn find_list(
   };
 }
 
-pub fn register(
-  _name: String,
-  _user_id: u32,
-  _body_id: u32,
-) -> MysetEntry {
+pub fn register(_name: String, _user_id: u32, _body_id: u32) -> MysetEntry {
   return MysetEntry {
     id: 3,
     name: String::from("汎用装備"),
@@ -62,11 +58,7 @@ pub fn register(
   };
 }
 
-pub fn update(
-  _id: u32,
-  _name: String,
-  _body_id: u32,
-) -> MysetEntry {
+pub fn update(_id: u32, _name: String, _body_id: u32) -> MysetEntry {
   return MysetEntry {
     id: 3,
     name: String::from("汎用装備"),
