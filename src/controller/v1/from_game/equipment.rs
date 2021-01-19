@@ -2,14 +2,34 @@ use actix_web::{get, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use server::service;
 
+// ステータス
+#[derive(Serialize, Deserialize, Debug)]
+struct StatusOfGetOneResponseEntry {
+    equipment_id: u32,      // 装備ID
+    parameter_id: u32,      // パラメータID
+    num: Option<u32>,       // 増減値
+    parameter_name: String, // パラメータ名
+    display_order: u32,     // 表示順
+}
+// hogeインタフェース
+#[derive(Serialize, Deserialize, Debug)]
+struct HogeInterfaceOfGetOneResponseEntry {
+    equipment_id: u32,                                                   // 装備ID
+    hoge_interface_id: u32,                                              // hogeインタフェースID
+    display_order: u32,                                                  // 表示順
+    unequiping_hoge_interfaces: Vec<HogeInterfaceOfGetOneResponseEntry>, // 装備すると装備できなくなるhogeインタフェース一覧
+}
 // 装備取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: u32,               // 装備ID
-    name: String,          // 装備名
-    ruby: String,          // ルビ
-    flavor: String,        // フレーバーテキスト
-    add_socket_count: u32, // 装備時に増えるソケット数
+    id: u32,                                                             // 装備ID
+    name: String,                                                        // 装備名
+    ruby: Option<String>,                                                // ルビ
+    flavor: Option<String>,                                              // フレーバーテキスト
+    add_socket_count: u32,                                               // 装備時に増えるソケット数
+    statuses: Vec<StatusOfGetOneResponseEntry>,                          // ステータス
+    increasing_hoge_interfaces: Vec<HogeInterfaceOfGetOneResponseEntry>, // 装備すると増えるhogeインタフェース一覧
+    equipable_hoge_interfaces: Vec<HogeInterfaceOfGetOneResponseEntry>, // 装備できるhogeインタフェース一覧
 }
 // 装備取得API
 #[get("/api/v1/game/equipments/{equipment_id}")]
@@ -29,6 +49,48 @@ pub async fn get_one(
         ruby: equipment.ruby,
         flavor: equipment.flavor,
         add_socket_count: equipment.add_socket_count,
+        statuses: equipment
+            .statuses
+            .iter()
+            .map(|status| StatusOfGetOneResponseEntry {
+                equipment_id: status.equipment_id,
+                parameter_id: status.parameter_id,
+                num: status.num,
+                parameter_name: status.parameter_name.clone(),
+                display_order: status.display_order,
+            })
+            .collect(),
+        increasing_hoge_interfaces: equipment
+            .increasing_hoge_interfaces
+            .iter()
+            .map(|hoge_interface| HogeInterfaceOfGetOneResponseEntry {
+                equipment_id: hoge_interface.equipment_id,
+                hoge_interface_id: hoge_interface.hoge_interface_id,
+                display_order: hoge_interface.display_order,
+                unequiping_hoge_interfaces: Vec::new(),
+            })
+            .collect(),
+        equipable_hoge_interfaces: equipment
+            .equipable_hoge_interfaces
+            .iter()
+            .map(|hoge_interface| HogeInterfaceOfGetOneResponseEntry {
+                equipment_id: hoge_interface.equipment_id,
+                hoge_interface_id: hoge_interface.hoge_interface_id,
+                display_order: hoge_interface.display_order,
+                unequiping_hoge_interfaces: hoge_interface
+                    .unequiping_hoge_interfaces
+                    .iter()
+                    .map(
+                        |unequiping_hoge_interface| HogeInterfaceOfGetOneResponseEntry {
+                            equipment_id: unequiping_hoge_interface.equipment_id,
+                            hoge_interface_id: unequiping_hoge_interface.hoge_interface_id,
+                            display_order: unequiping_hoge_interface.display_order,
+                            unequiping_hoge_interfaces: Vec::new(),
+                        },
+                    )
+                    .collect(),
+            })
+            .collect(),
     });
 }
 
@@ -70,19 +132,17 @@ pub async fn get_list(
     let equipments = service::equipment::find_list(user_id, only_having, sort_by, limit, offset);
 
     // レスポンス加工
-    let mut response = GetListResponseEntry {
+    return HttpResponse::Ok().json(GetListResponseEntry {
         total_count: equipments.total_count,
-        equipments: Vec::new(),
-    };
-    for equipment in &equipments.equipments {
-        response
+        equipments: equipments
             .equipments
-            .push(EquipmentEntryOfGetListResponseEntry {
+            .iter()
+            .map(|equipment| EquipmentEntryOfGetListResponseEntry {
                 id: equipment.id,
                 name: equipment.name.to_string(),
                 having: Some(false),
                 display_order: equipment.display_order,
-            });
-    }
-    return HttpResponse::Ok().json(response);
+            })
+            .collect(),
+    });
 }

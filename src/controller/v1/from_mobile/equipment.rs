@@ -5,11 +5,11 @@ use server::service;
 // 装備取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseDataEntry {
-    id: u32,               // 装備ID
-    name: String,          // 装備名
-    ruby: String,          // ルビ
-    flavor: String,        // フレーバーテキスト
-    add_socket_count: u32, // 装備時に増えるソケット数
+    id: u32,                // 装備ID
+    name: String,           // 装備名
+    ruby: Option<String>,   // ルビ
+    flavor: Option<String>, // フレーバーテキスト
+    add_socket_count: u32,  // 装備時に増えるソケット数
 }
 // 装備取得API
 #[get("/api/v1/mobile/equipments/{equipment_id}")]
@@ -70,19 +70,17 @@ pub async fn get_list(
     let equipments = service::equipment::find_list(user_id, only_having, sort_by, limit, offset);
 
     // レスポンス加工
-    let mut response = GetListResponseEntry {
+    return HttpResponse::Ok().json(GetListResponseEntry {
         total_count: equipments.total_count,
-        equipments: Vec::new(),
-    };
-    for equipment in &equipments.equipments {
-        response
+        equipments: equipments
             .equipments
-            .push(EquipmentEntryOfGetListResponseEntry {
+            .iter()
+            .map(|equipment| EquipmentEntryOfGetListResponseEntry {
                 id: equipment.id,
                 name: equipment.name.to_string(),
                 having: Some(false),
                 display_order: equipment.display_order,
-            });
-    }
-    return HttpResponse::Ok().json(response);
+            })
+            .collect(),
+    });
 }
