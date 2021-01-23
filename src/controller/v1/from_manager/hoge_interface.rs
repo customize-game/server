@@ -67,21 +67,19 @@ pub async fn get_list(
     let hoge_interfaces = service::hoge_interface::find_list(sort_by, limit, offset);
 
     // レスポンス加工
-    let mut response = GetListResponseEntry {
+    return HttpResponse::Ok().json(GetListResponseEntry {
         total_count: hoge_interfaces.total_count,
-        hoge_interfaces: Vec::new(),
-    };
-    for hoge_interface in &hoge_interfaces.hoge_interfaces {
-        response
+        hoge_interfaces: hoge_interfaces
             .hoge_interfaces
-            .push(HogeInterfaceEntryOfGetListResponseEntry {
+            .iter()
+            .map(|hoge_interface| HogeInterfaceEntryOfGetListResponseEntry {
                 id: hoge_interface.id,
                 name: hoge_interface.name.to_string(),
                 display_order: hoge_interface.display_order,
                 is_deleted: hoge_interface.is_deleted,
-            });
-    }
-    return HttpResponse::Ok().json(response);
+            })
+            .collect(),
+    });
 }
 
 // hogeインタフェース登録APIリクエスト
