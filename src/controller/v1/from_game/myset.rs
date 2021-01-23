@@ -5,10 +5,15 @@ use server::service;
 // マイセット取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: u32,      // マイセットID
-    name: String, // マイセット名
-    body_id: u32, // 素体ID
-    version: u32, // バージョン
+    id: u32,                     // マイセットID
+    name: String,                // マイセット名
+    body_id: u32,                // 素体ID
+    display_order: u32,          // 表示順
+    version: u32,                // バージョン
+    body_name: String,           // 素体名
+    body_ruby: Option<String>,   // 素体名ルビ
+    body_flavor: Option<String>, // 素体フレーバーテキスト
+    body_version: u32,           // 素体バージョン
 }
 // マイセット取得API
 #[get("/api/v1/game/mysets/{myset_id}")]
@@ -26,7 +31,12 @@ pub async fn get_one(
         id: myset.id,
         name: myset.name,
         body_id: myset.body_id,
+        display_order: myset.display_order,
         version: myset.version,
+        body_name: myset.body_name,
+        body_ruby: myset.body_ruby,
+        body_flavor: myset.body_flavor,
+        body_version: myset.body_version,
     });
 }
 
@@ -40,9 +50,11 @@ pub struct GetListRequest {
 // マイセット一覧取得APIレスポンスのマイセット
 #[derive(Serialize, Deserialize, Debug)]
 struct MysetEntryOfGetListResponseEntry {
-    id: u32,      // マイセットID
-    name: String, // マイセット名
-    body_id: u32, // 素体ID
+    id: u32,            // マイセットID
+    name: String,       // マイセット名
+    body_id: u32,       // 素体ID
+    display_order: u32, // 表示順
+    version: u32,       // バージョン
 }
 // マイセット一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -65,32 +77,41 @@ pub async fn get_list(
     let mysets = service::myset::find_list(user_id, sort_by, limit, offset);
 
     // レスポンス加工
-    let mut response = GetListResponseEntry {
+    return HttpResponse::Ok().json(GetListResponseEntry {
         total_count: mysets.total_count,
-        mysets: Vec::new(),
-    };
-    for myset in &mysets.mysets {
-        response.mysets.push(MysetEntryOfGetListResponseEntry {
-            id: myset.id,
-            name: myset.name.to_string(),
-            body_id: myset.body_id,
-        });
-    }
-    return HttpResponse::Ok().json(response);
+        mysets: mysets
+            .mysets
+            .iter()
+            .map(|myset| MysetEntryOfGetListResponseEntry {
+                id: myset.id,
+                name: myset.name.to_string(),
+                body_id: myset.body_id,
+                display_order: 3,
+                version: 0,
+            })
+            .collect(),
+    });
 }
 
 // マイセット登録APIリクエスト
 #[derive(Deserialize)]
 pub struct RegisterRequestBody {
-    name: String, // マイセット名
-    body_id: u32, // 素体ID
+    name: String,       // マイセット名
+    body_id: u32,       // 素体ID
+    display_order: u32, // 表示順
 }
 // マイセット登録APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct RegisterResponseEntry {
-    id: u32,      // マイセットID
-    name: String, // マイセット名
-    body_id: u32, // 素体ID
+    id: u32,                     // マイセットID
+    name: String,                // マイセット名
+    body_id: u32,                // 素体ID
+    display_order: u32,          // 表示順
+    version: u32,                // バージョン
+    body_name: String,           // 素体名
+    body_ruby: Option<String>,   // 素体名ルビ
+    body_flavor: Option<String>, // 素体フレーバーテキスト
+    body_version: u32,           // 素体バージョン
 }
 // マイセット登録API
 #[post("/api/v1/game/mysets")]
@@ -101,31 +122,44 @@ pub async fn register(
     let user_id = 3; // TODO 認証情報から取得
     let name = request_body.name.to_string();
     let body_id = request_body.body_id;
+    let display_order = request_body.display_order;
 
     // データ登録
-    let myset = service::myset::register(name, user_id, body_id);
+    let myset = service::myset::register(name, user_id, body_id, display_order);
 
     // レスポンス加工
     return HttpResponse::Ok().json(RegisterResponseEntry {
         id: myset.id,
         name: myset.name,
         body_id: myset.body_id,
+        display_order: myset.display_order,
+        version: myset.version,
+        body_name: myset.body_name,
+        body_ruby: myset.body_ruby,
+        body_flavor: myset.body_flavor,
+        body_version: myset.body_version,
     });
 }
 
 // マイセット更新APIリクエスト
 #[derive(Deserialize)]
 pub struct UpdateRequestBody {
-    name: String, // マイセット名
-    body_id: u32, // 素体ID
+    name: String,       // マイセット名
+    body_id: u32,       // 素体ID
+    display_order: u32, // 表示順
 }
 // マイセット更新APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct UpdateResponseEntry {
-    id: u32,      // マイセットID
-    name: String, // マイセット名
-    body_id: u32, // 素体ID
-    version: u32, // バージョン
+    id: u32,                     // マイセットID
+    name: String,                // マイセット名
+    body_id: u32,                // 素体ID
+    version: u32,                // バージョン
+    display_order: u32,          // 表示順
+    body_name: String,           // 素体名
+    body_ruby: Option<String>,   // 素体名ルビ
+    body_flavor: Option<String>, // 素体フレーバーテキスト
+    body_version: u32,           // 素体バージョン
 }
 // マイセット更新API
 #[put("/api/v1/game/mysets/{myset_id}")]
@@ -137,26 +171,37 @@ pub async fn update(
     let myset_id: Option<u32> = Some(myset_id);
     let name = request_body.name.to_string();
     let body_id = request_body.body_id;
+    let display_order = request_body.display_order;
 
     // データ更新
-    let myset = service::myset::update(myset_id.unwrap(), name, body_id);
+    let myset = service::myset::update(myset_id.unwrap(), name, body_id, display_order);
 
     // レスポンス加工
     return HttpResponse::Ok().json(UpdateResponseEntry {
         id: myset.id,
         name: myset.name,
         body_id: myset.body_id,
+        display_order: myset.display_order,
         version: myset.version,
+        body_name: myset.body_name,
+        body_ruby: myset.body_ruby,
+        body_flavor: myset.body_flavor,
+        body_version: myset.body_version,
     });
 }
 
 // マイセット削除APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct DeleteResponseEntry {
-    id: u32,      // マイセットID
-    name: String, // マイセット名
-    body_id: u32, // 素体ID
-    version: u32, // バージョン
+    id: u32,                     // マイセットID
+    name: String,                // マイセット名
+    body_id: u32,                // 素体ID
+    version: u32,                // バージョン
+    display_order: u32,          // 表示順
+    body_name: String,           // 素体名
+    body_ruby: Option<String>,   // 素体名ルビ
+    body_flavor: Option<String>, // 素体フレーバーテキスト
+    body_version: u32,           // 素体バージョン
 }
 // マイセット削除API
 #[delete("/api/v1/game/mysets/{myset_id}")]
@@ -174,6 +219,11 @@ pub async fn delete(
         id: myset.id,
         name: myset.name,
         body_id: myset.body_id,
+        display_order: myset.display_order,
         version: myset.version,
+        body_name: myset.body_name,
+        body_ruby: myset.body_ruby,
+        body_flavor: myset.body_flavor,
+        body_version: myset.body_version,
     });
 }
