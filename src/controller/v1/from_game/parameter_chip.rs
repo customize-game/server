@@ -2,13 +2,32 @@ use actix_web::{get, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use server::service;
 
+// パラメータチップ取得APIのソケット
+#[derive(Serialize, Deserialize, Debug)]
+struct SocketOfGetOneResponseEntry {
+    parameter_chip_id: u32, // パラメータチップID
+    x: u32,                 // X座標
+    y: u32,                 // Y座標
+}
+// パラメータチップ取得APIの効果
+#[derive(Serialize, Deserialize, Debug)]
+struct EffectOfGetOneResponseEntry {
+    parameter_chip_id: u32, // パラメータチップID
+    parameter_id: u32,      // パラメータID
+    num: Option<u32>,       // 増減値
+    name: String,           // パラメータ名
+    display_order: u32,     // パラメータ表示順
+}
 // パラメータチップ取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: u32,            // パラメータチップID
-    name: String,       // パラメータチップ名
-    display_order: u32, // 表示順
-    version: u32,       // バージョン
+    id: u32,                                   // パラメータチップID
+    name: String,                              // パラメータチップ名
+    display_order: u32,                        // 表示順
+    version: u32,                              // バージョン
+    having_count: Option<u32>,                 // 所持数
+    sockets: Vec<SocketOfGetOneResponseEntry>, // ソケット一覧
+    effects: Vec<EffectOfGetOneResponseEntry>, // 効果一覧
 }
 // パラメータチップ取得API
 #[get("/api/v1/game/parameter-chips/{parameter_chip_id}")]
@@ -27,6 +46,27 @@ pub async fn get_one(
         name: parameter_chip.name,
         display_order: parameter_chip.display_order,
         version: parameter_chip.version,
+        having_count: parameter_chip.having_count,
+        sockets: parameter_chip
+            .sockets
+            .iter()
+            .map(|socket| SocketOfGetOneResponseEntry {
+                parameter_chip_id: socket.parameter_chip_id,
+                x: socket.x,
+                y: socket.y,
+            })
+            .collect(),
+        effects: parameter_chip
+            .effects
+            .iter()
+            .map(|effect| EffectOfGetOneResponseEntry {
+                parameter_chip_id: effect.parameter_chip_id,
+                parameter_id: effect.parameter_id,
+                num: effect.num,
+                name: effect.name.to_string(),
+                display_order: effect.display_order,
+            })
+            .collect(),
     });
 }
 
@@ -41,10 +81,11 @@ pub struct GetListRequest {
 // パラメータチップ一覧取得APIレスポンスのパラメータチップ
 #[derive(Serialize, Deserialize, Debug)]
 struct ParameterChipEntryOfGetListResponseEntry {
-    id: u32,              // 装備ID
-    name: String,         // 装備名
-    having: Option<bool>, // 取得済みかどうか
-    display_order: u32,   // 表示順
+    id: u32,                   // パラメータチップID
+    name: String,              // パラメータチップ名
+    display_order: u32,        // 表示順
+    version: u32,              // バージョン
+    having_count: Option<u32>, // 所持数
 }
 // パラメータチップ一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -69,19 +110,18 @@ pub async fn get_list(
         service::parameter_chip::find_list(user_id, only_having, sort_by, limit, offset);
 
     // レスポンス加工
-    let mut response = GetListResponseEntry {
+    return HttpResponse::Ok().json(GetListResponseEntry {
         total_count: parameter_chips.total_count,
-        parameter_chips: Vec::new(),
-    };
-    for parameter_chip in &parameter_chips.parameter_chips {
-        response
+        parameter_chips: parameter_chips
             .parameter_chips
-            .push(ParameterChipEntryOfGetListResponseEntry {
+            .iter()
+            .map(|parameter_chip| ParameterChipEntryOfGetListResponseEntry {
                 id: parameter_chip.id,
                 name: parameter_chip.name.to_string(),
-                having: Some(false),
+                having_count: parameter_chip.having_count,
                 display_order: parameter_chip.display_order,
-            });
-    }
-    return HttpResponse::Ok().json(response);
+                version: parameter_chip.version,
+            })
+            .collect(),
+    });
 }
