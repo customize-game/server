@@ -3,7 +3,7 @@ services:
   db:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
     ports:
       - 3306:3306
     volumes:
@@ -19,7 +19,7 @@ services:
       - 5000:5000
     stdin_open: true
     volumes:
-      - ./:/disel_demo
+      - ./:/opt/program
     depends_on:
       - db
     container_name: customize_game_server
