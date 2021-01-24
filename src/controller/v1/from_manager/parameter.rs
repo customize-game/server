@@ -67,21 +67,19 @@ pub async fn get_list(
     let parameters = service::parameter::find_list(sort_by, limit, offset);
 
     // レスポンス加工
-    let mut response = GetListResponseEntry {
+    return HttpResponse::Ok().json(GetListResponseEntry {
         total_count: parameters.total_count,
-        parameters: Vec::new(),
-    };
-    for parameter in &parameters.parameters {
-        response
+        parameters: parameters
             .parameters
-            .push(ParameterEntryOfGetListResponseEntry {
+            .iter()
+            .map(|parameter| ParameterEntryOfGetListResponseEntry {
                 id: parameter.id,
                 name: parameter.name.to_string(),
                 display_order: parameter.display_order,
                 is_deleted: parameter.is_deleted,
-            });
-    }
-    return HttpResponse::Ok().json(response);
+            })
+            .collect(),
+    });
 }
 
 // パラメータ登録APIリクエスト
@@ -169,7 +167,9 @@ struct DeleteResponseEntry {
 }
 // パラメータ削除API
 #[delete("/api/v1/manager/parameters/{parameter_id}")]
-pub async fn delete(web::Path(parameter_id): web::Path<u32>) -> impl Responder {
+pub async fn delete(
+    web::Path(parameter_id): web::Path<u32>, // パラメータID - パスパラメータ
+) -> impl Responder {
     // リクエスト取得
     let parameter_id: Option<u32> = Some(parameter_id);
 
