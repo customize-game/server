@@ -64,18 +64,18 @@ pub async fn get_list(
     let users = service::user::find_list(sort_by, limit, offset);
 
     // レスポンス加工
-    let mut response = GetListResponseEntry {
+    return HttpResponse::Ok().json(GetListResponseEntry {
         total_count: users.total_count,
-        users: Vec::new(),
-    };
-    for user in &users.users {
-        response.users.push(UserEntryOfGetListResponseEntry {
-            id: user.id,
-            exp: user.exp,
-            is_deleted: user.is_deleted,
-        });
-    }
-    return HttpResponse::Ok().json(response);
+        users: users
+            .users
+            .iter()
+            .map(|user| UserEntryOfGetListResponseEntry {
+                id: user.id,
+                exp: user.exp,
+                is_deleted: user.is_deleted,
+            })
+            .collect(),
+    });
 }
 
 // ユーザ更新APIリクエスト
