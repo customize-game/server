@@ -3,23 +3,21 @@ services:
   db:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root
     ports:
       - 3306:3306
     volumes:
-      - ./dockerfile/mysql:/var/lib/mysql
+      - ./initdb.d:/docker-entrypoint-initdb.d
     container_name: customize_game_mysql
   rust:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile
-    environment:
-      USER: root
     ports:
       - 5000:5000
     stdin_open: true
     volumes:
-      - ./:/disel_demo
+      - ./:/opt/program
     depends_on:
       - db
     container_name: customize_game_server

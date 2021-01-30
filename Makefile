@@ -1,25 +1,30 @@
 help:
-	@echo "init    => Initialize enviroment settings."
 	@echo "build    => Build enviroment settings."
-	@echo "no-cache-build => Build enviroment settings. without cache"
 	@echo "start    => Start Container."
 	@echo "run    => Create Container."
+	@echo "exec    => execute to rust Container."
+	@echo "use_mysql    => execute MySQL Container."
 	@echo "update  => Fetch all changes from remote repo."
 	@echo "remove => Remove container."
-
+	@echo "destroy => Remove garbage files"
 
 build:
-	@docker-compose up -d
+	@docker-compose build
 
 start:
 	@docker-compose start
 
+run:
+	@docker-compose up -d
 
 stop:
 	@docker-compose stop
 
 exec:
 	@docker exec -it customize_game_server bash
+
+use_mysql:
+	@docker exec -it customize_game_mysql bash
 
 update:
 	git pull origin master
@@ -29,4 +34,9 @@ update:
 
 remove:
 	@make stop
-	@docker rm Customize_game_server_container
+	@docker rm customize_game_server
+	@docker rm customize_game_mysql
+
+destroy:
+	@sudo rm -rf dockerfile/mysql
+	@sudo rm -rf target/
