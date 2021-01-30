@@ -33,3 +33,7 @@ remove:
 	@make stop
 	@docker rm customize_game_server
 	@docker rm customize_game_mysql
+
+destroy:
+	@sudo rm -rf dockerfile/mysql
+	@sudo rm -rf target/

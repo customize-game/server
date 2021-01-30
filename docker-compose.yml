@@ -6,8 +6,8 @@ services:
       MYSQL_ROOT_PASSWORD: root
     ports:
       - 3306:3306
-    volumes:
-      - ./dockerfile/mysql:/var/lib/mysql
+    # volumes:
+    #   - ./dockerfile/mysql:/var/lib/mysql
     container_name: customize_game_mysql
   rust:
     build:
