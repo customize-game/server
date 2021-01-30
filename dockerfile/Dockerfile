@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM rust:1.48.0
 
 RUN perl -p -i.bak -e 's%https?://(?!security)[^ \t]+%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g' /etc/apt/sources.list``
 RUN apt-get clean
