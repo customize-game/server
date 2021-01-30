@@ -1,12 +1,12 @@
 help:
-	@echo "init    => Initialize enviroment settings."
 	@echo "build    => Build enviroment settings."
-	@echo "no-cache-build => Build enviroment settings. without cache"
 	@echo "start    => Start Container."
 	@echo "run    => Create Container."
+	@echo "exec    => execute to rust Container."
+	@echo "use_mysql    => execute MySQL Container."
 	@echo "update  => Fetch all changes from remote repo."
 	@echo "remove => Remove container."
-
+	@echo "destroy => Remove garbage files"
 
 build:
 	@docker-compose build
@@ -22,6 +22,9 @@ stop:
 
 exec:
 	@docker exec -it customize_game_server bash
+
+use_mysql:
+	@docker exec -it customize_game_mysql bash
 
 update:
 	git pull origin master
