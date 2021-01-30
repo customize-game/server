@@ -6,26 +6,19 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - 33060:3306
-    env_file:
-      - ./.env
+      - 3306:3306
+    volumes:
+      - ./initdb.d:/docker-entrypoint-initdb.d
     container_name: customize_game_mysql
   rust:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile
-    user: "${UID}:${GID}"
-    environment:
-      CARGO_BUILD_TARGET_DIR: /opt/program/target
     ports:
       - 5000:5000
     stdin_open: true
     volumes:
       - ./:/opt/program
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
-    env_file:
-      - ./.env
     depends_on:
       - db
     container_name: customize_game_server
