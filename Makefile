@@ -14,7 +14,7 @@ build:
 start:
 	@docker-compose start
 
-build:
+run:
 	@docker-compose up -d
 
 stop:
