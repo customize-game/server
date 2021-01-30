@@ -31,4 +31,5 @@ update:
 
 remove:
 	@make stop
-	@docker rm Customize_game_server_container
+	@docker rm customize_game_server
+	@docker rm customize_game_mysql
