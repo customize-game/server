@@ -13,3 +13,5 @@ thiserror = "1.0.20"
 diesel = { version = "*", features = ["mysql"] }
 dotenv = "0.15.0"
 config = "0.10.1"
+serde = "1.0.123"
+lazy_static = "1.4.0"

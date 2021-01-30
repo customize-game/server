@@ -1,8 +1,12 @@
 use diesel::mysql::MysqlConnection;
 use diesel::prelude::*;
 use dotenv::dotenv;
+use config::Environment;
 use config::ConfigError;
+use serde::Deserialize;
+use lazy_static::lazy_static;
 
+#[derive(Deserialize, Debug)]
 pub struct Config {
     pub db_user: String,
     pub db_password: String,
@@ -10,7 +14,6 @@ pub struct Config {
     pub db_port: i32,
     pub server_port: i32,
 }
-
 impl Default for Config {
     fn default() -> Self {
         Self { 
@@ -21,6 +24,21 @@ impl Default for Config {
             server_port: 5000
         }
     }
+}
+
+impl Config {
+    pub fn get_env_info() -> Result<Self, ConfigError> {
+        let mut config = config::Config::new();
+        config.merge(config::Environment::new())?;
+        config.try_into()
+    }
+}
+
+lazy_static! {
+    static ref CONFIG: Config = {
+        dotenv().ok();
+        Config::get_env_info().unwrap()
+    };
 }
 
 

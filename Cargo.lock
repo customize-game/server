@@ -1444,6 +1444,8 @@ dependencies = [
  "config",
  "diesel",
  "dotenv",
+ "lazy_static",
+ "serde 1.0.123",
  "thiserror",
 ]
 
