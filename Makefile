@@ -9,11 +9,13 @@ help:
 
 
 build:
-	@docker-compose up -d
+	@docker-compose build
 
 start:
 	@docker-compose start
 
+build:
+	@docker-compose up -d
 
 stop:
 	@docker-compose stop
