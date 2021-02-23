@@ -43,7 +43,11 @@ lazy_static! {
 
 
 pub fn establish_connection() -> MysqlConnection {
-    let database_url = format!("mysql://{}:{}@localhost:{}/{}", CONFIG.db_user, CONFIG.db_password, CONFIG.db_port, CONFIG.db_name);
+    let database_url = format!("mysql://{}:{}@localhost:{}/{}", 
+                               CONFIG.db_user,
+                               CONFIG.db_password,
+                               CONFIG.db_port,
+                               CONFIG.db_name);
     MysqlConnection::establish(&database_url)
         .expect(&format!("Error connecting to {}", database_url))
 }
