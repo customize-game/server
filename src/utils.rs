@@ -47,7 +47,8 @@ pub fn establish_connection() -> MysqlConnection {
                                CONFIG.db_user,
                                CONFIG.db_password,
                                CONFIG.db_port,
-                               CONFIG.db_name);
+                               CONFIG.db_name
+                               );
     MysqlConnection::establish(&database_url)
         .expect(&format!("Error connecting to {}", database_url))
 }
