@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: dockerfile/Dockerfile
     ports:
-      - 5000:5000
+      - "${SERVER_PORT}:${SERVER_PORT}"
     stdin_open: true
     volumes:
       - ./:/opt/program
