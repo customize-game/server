@@ -35,6 +35,8 @@ impl Config {
     }
 }
 
+
+// TODO: separate SERVER and DB ENV VALUES
 lazy_static! {
     pub static ref CONFIG: Config = {
         dotenv().ok();
