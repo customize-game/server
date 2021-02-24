@@ -14,6 +14,7 @@ pub struct Config {
     pub db_port: i32,
     pub server_port: i32,
 }
+
 impl Default for Config {
     fn default() -> Self {
         Self { 
@@ -35,7 +36,7 @@ impl Config {
 }
 
 lazy_static! {
-    static ref CONFIG: Config = {
+    pub static ref CONFIG: Config = {
         dotenv().ok();
         Config::get_env_info().unwrap()
     };
@@ -43,7 +44,7 @@ lazy_static! {
 
 
 pub fn establish_connection() -> MysqlConnection {
-    let database_url = format!("mysql://{}:{}@localhost:{}/{}", 
+    let database_url = format!("mysql://{}:{}@db:{}/{}", 
                                CONFIG.db_user,
                                CONFIG.db_password,
                                CONFIG.db_port,
