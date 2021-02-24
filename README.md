@@ -15,9 +15,19 @@
    make build
    ```
 
+2.  Make `.env` file. Sample .env file is bellow.
+
+   ```shell
+   DB_USER=USER
+   DB_PASSWORD=USER
+   DB_PORT=3306
+   DB_NAME=player_info
+   SERVER_PORT=5000
+   ```
+
    
 
-2. create container from build image
+3. create container from build image
 
    ```shell
    make run
@@ -25,13 +35,21 @@
 
    
 
-3. execute an interactive bash on the container
+4. execute an interactive bash on the container
 
    ```shell
    make exec
    ```
 
+5.  run `cargo run` in container
+
+   ```shell
+   cargo run
+   ```
+
    
+
+
 
 <br />
 
@@ -48,3 +66,7 @@ make exec_rust
 cargo install diesel_cli --no-default-features --features mysql
 diesel migration run
 ```
+
+
+
+ 
