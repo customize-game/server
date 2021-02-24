@@ -1,5 +1,6 @@
 use actix_web::{ App, HttpServer};
 mod controller;
+mod utils;
 
 #[actix_rt::main]
 async fn main() -> Result<(), actix_web::Error> {
@@ -81,7 +82,7 @@ async fn main() -> Result<(), actix_web::Error> {
             .service(controller::v1::from_mobile::user::get_myself)
             .service(controller::v1::from_mobile::user::register)
     )
-    .bind("0.0.0.0:5000")?
+    .bind(format!("0.0.0.0:{}", utils::CONFIG.server_port))?
     .run()
     .await?;
     Ok(())
