@@ -47,8 +47,13 @@ pub fn find_by_id(
 }
 
 // hogeインタフェース一覧取得
+// TODO _sort_by,_limit,_offsetが使われてない
+// これらOptionの定義がされてなければSQLにもLIMIT句がない　みたいなことしないといけない？
 pub fn find_list(
   _connection: &diesel::MysqlConnection, // 接続情報
+  _sort_by: Option<i32>, // ソート種別
+  _limit: Option<i32>,   // 取得数
+  _offset: Option<i32>,  // 取得位置
 ) -> Result<Vec<HogeInterface>, diesel::result::Error> {
   let result: Result<Vec<HogeInterface>, diesel::result::Error> = sql_query(
     "SELECT

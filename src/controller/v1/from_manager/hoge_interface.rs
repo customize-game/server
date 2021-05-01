@@ -17,11 +17,9 @@ struct GetOneResponseEntry {
 pub async fn get_one(
     web::Path(hoge_interface_id): web::Path<i32>, // hogeインタフェースID - パスパラメータ
 ) -> impl Responder {
-    // リクエスト取得
-    let hoge_interface_id: Option<i32> = Some(hoge_interface_id);
-
+    
     // データ取得
-    let hoge_interface = service::hoge_interface::find_by_id(hoge_interface_id.unwrap()).unwrap();
+    let hoge_interface = service::hoge_interface::find_by_id(hoge_interface_id).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetOneResponseEntry {
@@ -49,7 +47,7 @@ struct HogeInterfaceEntryOfGetListResponseEntry {
 // hogeインタフェース一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetListResponseEntry {
-    total_count: usize,                                               // 合計数
+    total_count: usize,                                             // 合計数
     hoge_interfaces: Vec<HogeInterfaceEntryOfGetListResponseEntry>, // hogeインタフェース一覧
 }
 // hogeインタフェース一覧取得API
@@ -134,14 +132,13 @@ pub async fn update(
     request_body: web::Json<UpdateRequestBody>,   // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let hoge_interface_id: Option<i32> = Some(hoge_interface_id);
     let name = request_body.name.to_string();
     let display_order = request_body.display_order;
     let version = request_body.version;
 
     // データ更新
     let update_count = service::hoge_interface::update(
-        hoge_interface_id.unwrap(),
+        hoge_interface_id,
         name,
         display_order,
         version ,
@@ -156,7 +153,7 @@ pub async fn update(
 // hogeインタフェース削除APIリクエスト
 #[derive(Deserialize)]
 pub struct DeleteRequestBody {
-    version: i32,       // バージョン
+    version: i32, // バージョン
 }
 // hogeインタフェース削除APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -172,11 +169,10 @@ pub async fn delete(
     request_body: web::Json<DeleteRequestBody>,   // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let hoge_interface_id: Option<i32> = Some(hoge_interface_id);
     let version = request_body.version;
 
     // データ削除
-    let delete_count = service::hoge_interface::delete(hoge_interface_id.unwrap(), version).unwrap();
+    let delete_count = service::hoge_interface::delete(hoge_interface_id, version).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(DeleteResponseEntry {

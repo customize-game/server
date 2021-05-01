@@ -50,7 +50,12 @@ pub fn find_list(
   return connection.transaction::<HogeInterfaceTemplate, _, _>(|| {
 
     // データ取得
-    let result = dao::hoge_interface::find_list(&connection).unwrap();
+    let result = dao::hoge_interface::find_list(
+      &connection,
+      _sort_by,
+      _limit,
+      _offset
+    ).unwrap();
 
     // データ加工
     return Ok(HogeInterfaceTemplate{
