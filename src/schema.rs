@@ -163,9 +163,6 @@ table! {
         id -> Integer,
         name -> Varchar,
         display_order -> Integer,
-        is_deleted -> Tinyint,
-        created_datetime -> Datetime,
-        updated_datetime -> Datetime,
         version -> Integer,
     }
 }
@@ -234,9 +231,6 @@ table! {
         id -> Integer,
         name -> Varchar,
         display_order -> Integer,
-        is_deleted -> Tinyint,
-        created_datetime -> Datetime,
-        updated_datetime -> Datetime,
         version -> Integer,
     }
 }

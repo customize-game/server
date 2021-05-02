@@ -47,16 +47,15 @@ pub fn find_by_id(
 }
 
 // hogeインタフェース一覧取得
-// TODO _sort_by,_limit,_offsetが使われてない
-// これらOptionの定義がされてなければSQLにもLIMIT句がない　みたいなことしないといけない？
+// TODO SQLインジェクション可能 ORDER BYのところ書き方変える必要あり
 pub fn find_list(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _sort_by: Option<i32>, // ソート種別
-  _limit: Option<i32>,   // 取得数
-  _offset: Option<i32>,  // 取得位置
+  _sort_by: Option<String>,              // ソート種別
+  _limit: Option<i32>,                   // 取得数
+  _offset: Option<i32>,                  // 取得位置
 ) -> Result<Vec<HogeInterface>, diesel::result::Error> {
-  let result: Result<Vec<HogeInterface>, diesel::result::Error> = sql_query(
-    "SELECT
+  let mut query = "
+    SELECT
       h.id ,
       h.name ,
       h.display_order,
@@ -65,9 +64,18 @@ pub fn find_list(
       hoge_interfaces h
     WHERE
       h.is_deleted = 0
-    ",
-  )
-  .load(_connection);
+  ".to_string();
+  if let Some(s) = _sort_by {
+    query += &format!(" ORDER BY h.{}", s.to_string()).to_string();
+  };
+  if let Some(s) = _limit {
+    query += &format!(" LIMIT {}", s.to_string()).to_string();
+  }
+  if let Some(s) = _offset {
+    query += &format!(" OFFSET {}", s.to_string()).to_string();
+  }
+  let result: Result<Vec<HogeInterface>, diesel::result::Error> = sql_query( query )
+    .load(_connection);
   return result;
 }
 
@@ -78,8 +86,8 @@ pub fn find_list(
 // 
 pub fn register(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _name: String, // hogeインタフェース名
-  _display_order: i32, // 表示順
+  _name: String,                         // hogeインタフェース名
+  _display_order: i32,                   // 表示順
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "INSERT INTO
@@ -110,10 +118,10 @@ pub fn register(
 // hogeインタフェース更新
 pub fn update(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _id: i32, // hogeインタフェースID
-  _name: String, // hogeインタフェース名
-  _display_order: i32, // 表示順
-  _version: i32, // バージョン
+  _id: i32,                              // hogeインタフェースID
+  _name: String,                         // hogeインタフェース名
+  _display_order: i32,                   // 表示順
+  _version: i32,                         // バージョン
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "UPDATE
@@ -140,8 +148,8 @@ pub fn update(
 // hogeインタフェース削除
 pub fn delete(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _id: i32, // hogeインタフェースID
-  _version: i32, // バージョン
+  _id: i32,                              // hogeインタフェースID
+  _version: i32,                         // バージョン
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "UPDATE

@@ -33,7 +33,7 @@ pub async fn get_one(
 // hogeインタフェース一覧取得APIクエリパラメータ
 #[derive(Deserialize)]
 pub struct GetListRequest {
-    sort_by: Option<i32>, // ソート種別
+    sort_by: Option<String>, // ソート種別
     limit: Option<i32>,   // 取得数
     offset: Option<i32>,  // 取得位置
 }
@@ -58,12 +58,16 @@ pub async fn get_list(
     query: web::Query<GetListRequest>, // クエリパラメータ
 ) -> impl Responder {
     // リクエスト取得
-    let sort_by = query.sort_by;
+    let sort_by = query.sort_by.clone();
     let limit = query.limit;
     let offset = query.offset;
 
     // データ取得
-    let hoge_interfaces = service::hoge_interface::find_list(sort_by, limit, offset).unwrap();
+    let hoge_interfaces = service::hoge_interface::find_list(
+        sort_by, 
+        limit, 
+        offset
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetListResponseEntry {
@@ -99,11 +103,14 @@ pub async fn register(
     request_body: web::Json<RegisterRequestBody>, // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let name = request_body.name.to_string();
+    let name = request_body.name.clone();
     let display_order = request_body.display_order;
 
     // データ登録
-    let register_count = service::hoge_interface::register(name, display_order).unwrap();
+    let register_count = service::hoge_interface::register(
+        name, 
+        display_order
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(RegisterResponseEntry {
@@ -132,7 +139,7 @@ pub async fn update(
     request_body: web::Json<UpdateRequestBody>,   // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let name = request_body.name.to_string();
+    let name = request_body.name.clone();
     let display_order = request_body.display_order;
     let version = request_body.version;
 
@@ -172,7 +179,10 @@ pub async fn delete(
     let version = request_body.version;
 
     // データ削除
-    let delete_count = service::hoge_interface::delete(hoge_interface_id, version).unwrap();
+    let delete_count = service::hoge_interface::delete(
+        hoge_interface_id, 
+        version
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(DeleteResponseEntry {

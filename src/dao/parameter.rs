@@ -47,16 +47,15 @@ pub fn find_by_id(
 }
 
 // パラメータ一覧取得
-// TODO _sort_by,_limit,_offsetが使われてない
-// これらOptionの定義がされてなければSQLにもLIMIT句がない　みたいなことしないといけない？
+// TODO SQLインジェクション可能 ORDER BYのところ書き方変える必要あり
 pub fn find_list(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _sort_by: Option<i32>,                 // ソート種別
+  _sort_by: Option<String>,              // ソート種別
   _limit: Option<i32>,                   // 取得数
   _offset: Option<i32>,                  // 取得位置
 ) -> Result<Vec<Parameter>, diesel::result::Error> {
-  let result: Result<Vec<Parameter>, diesel::result::Error> = sql_query(
-    "SELECT
+  let mut query = "
+    SELECT
       p.id ,
       p.name ,
       p.display_order,
@@ -65,9 +64,18 @@ pub fn find_list(
       parameters p
     WHERE
       p.is_deleted = 0
-    ",
-  )
-  .load(_connection);
+  ".to_string();
+  if let Some(s) = _sort_by {
+    query += &format!(" ORDER BY h.{}", s.to_string()).to_string();
+  };
+  if let Some(s) = _limit {
+    query += &format!(" LIMIT {}", s.to_string()).to_string();
+  }
+  if let Some(s) = _offset {
+    query += &format!(" OFFSET {}", s.to_string()).to_string();
+  }
+  let result: Result<Vec<Parameter>, diesel::result::Error> = sql_query( query )
+    .load(_connection);
   return result;
 }
 
@@ -75,7 +83,6 @@ pub fn find_list(
 // 
 // TODO parameters.idにauto_incrementが必要
 // alter table parameters modify id int auto_increment;
-// 
 pub fn register(
   _connection: &diesel::MysqlConnection, // 接続情報
   _name: String,                         // パラメータ名

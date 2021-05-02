@@ -32,7 +32,7 @@ pub fn find_by_id(_id: i32, // パラメータID
     // データ加工
     return Ok(ParameterEntry{
       id: parameter.id,
-      name: parameter.name.to_string(),
+      name: parameter.name.clone(),
       display_order: parameter.display_order,
       version: parameter.version,
     });
@@ -42,7 +42,7 @@ pub fn find_by_id(_id: i32, // パラメータID
 
 // パラメータ一覧
 pub fn find_list(
-  _sort_by: Option<i32>, // ソート種別
+  _sort_by: Option<String>, // ソート種別
   _limit: Option<i32>,   // 取得数
   _offset: Option<i32>,  // 取得位置
 ) -> Result<ParameterTemplate, Error> {
@@ -62,7 +62,7 @@ pub fn find_list(
       total_count: result.len() ,
       parameters: result.iter().map(|parameter| ParameterEntry {
         id: parameter.id,
-        name: parameter.name.to_string(),
+        name: parameter.name.clone(),
         display_order: parameter.display_order,
         version: parameter.version,
       })

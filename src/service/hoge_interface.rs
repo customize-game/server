@@ -32,7 +32,7 @@ pub fn find_by_id(_id: i32, // hogeインタフェースID
     // データ加工
     return Ok(HogeInterfaceEntry{
       id: hoge_interface.id,
-      name: hoge_interface.name.to_string(),
+      name: hoge_interface.name.clone(),
       display_order: hoge_interface.display_order,
       version: hoge_interface.version,
     });
@@ -42,7 +42,7 @@ pub fn find_by_id(_id: i32, // hogeインタフェースID
 
 // hogeインタフェース一覧取得
 pub fn find_list(
-  _sort_by: Option<i32>, // ソート種別
+  _sort_by: Option<String>, // ソート種別
   _limit: Option<i32>,   // 取得数
   _offset: Option<i32>,  // 取得位置
 ) -> Result<HogeInterfaceTemplate, Error> {
@@ -62,7 +62,7 @@ pub fn find_list(
       total_count: result.len() ,
       hoge_interfaces: result.iter().map(|hoge_interface| HogeInterfaceEntry {
         id: hoge_interface.id,
-        name: hoge_interface.name.to_string(),
+        name: hoge_interface.name.clone(),
         display_order: hoge_interface.display_order,
         version: hoge_interface.version,
       })
