@@ -9,23 +9,19 @@ use crate::utils::establish_connection;
 pub struct StatusEntry {
   pub body_id: i32,           // 素体ID
   pub parameter_id: i32,      // パラメータID
-  pub num: Option<i32>,       // 増減値
-  pub status_version: i32,    // ステータスバージョン
+  pub num: i32,               // 増減値
   pub name: String,           // パラメータ名
   pub display_order: i32,     // 表示順
-  pub is_deleted: bool,       // 削除済みかどうか
-  pub parameter_version: i32, // パラメータバージョン
+  pub version: i32, // パラメータバージョン
 }
 
 // hogeインタフェース
 pub struct HogeInterfaceEntry {
-  pub body_id: i32,                        // 素体ID
-  pub hoge_interface_id: i32,              // hogeインタフェースID
-  pub bodies_hoge_interfaces_version: i32, // 素体：hogeインタフェースバージョン
-  pub name: String,                        // hogeインタフェース名
-  pub display_order: i32,                  // 表示順
-  pub is_deleted: bool,                    // 削除済みかどうか
-  pub hoge_interface_version: i32,         // hogeインタフェースバージョン
+  pub body_id: i32,           // 素体ID
+  pub hoge_interface_id: i32, // hogeインタフェースID
+  pub name: String,           // hogeインタフェース名
+  pub display_order: i32,     // 表示順
+  pub version: i32,           // hogeインタフェースバージョン
 }
 
 // ソケット
@@ -83,59 +79,42 @@ pub fn find_by_id(
       display_order: robot.display_order,
       version: robot.version,
       having: Some(true),
-      statuses: vec![
-        StatusEntry {
-          body_id: 3,
-          parameter_id: 4,
-          num: Some(4),
-          status_version: 2,
-          name: String::from("HP"),
-          display_order: 4,
-          is_deleted: false,
-          parameter_version: 5,
-        },
-        StatusEntry {
-          body_id: 3,
-          parameter_id: 4,
-          num: Some(4),
-          status_version: 2,
-          name: String::from("HP"),
-          display_order: 4,
-          is_deleted: false,
-          parameter_version: 5,
-        },
-      ],
-      hoge_interfaces: vec![
-        HogeInterfaceEntry {
-          body_id: 3,
-          hoge_interface_id: 2,
-          bodies_hoge_interfaces_version: 3,
-          name: String::from("右腕"),
-          display_order: 2,
-          is_deleted: false,
-          hoge_interface_version: 1,
-        },
-        HogeInterfaceEntry {
-          body_id: 3,
-          hoge_interface_id: 2,
-          bodies_hoge_interfaces_version: 3,
-          name: String::from("右腕"),
-          display_order: 2,
-          is_deleted: false,
-          hoge_interface_version: 1,
-        },
-      ],
-      sockets: robot.sockets.iter().map(|socket| SocketEntry {
-        body_id: socket.body_id,
-        x: socket.x,
-        y: socket.y,
-        operator: socket.operator.clone(),
-        num: socket.num,
-        version: socket.version,
-      })
-      .collect(),
+      statuses: dao::body_status::find_body_statuses_list( &connection, robot.id )
+        .unwrap()
+        .iter()
+        .map(|status| StatusEntry {
+          body_id: status.body_id,
+          parameter_id: status.parameter_id,
+          name: status.name.to_string(),
+          display_order: status.display_order,
+          num: status.num,
+          version: status.version,
+        })
+        .collect(),
+      hoge_interfaces: dao::body_hoge_interface::find_body_hoge_interfaces_list( &connection, robot.id )
+        .unwrap()
+        .iter()
+        .map(|hoge_interface| HogeInterfaceEntry{
+          body_id: hoge_interface.body_id,
+          hoge_interface_id: hoge_interface.hoge_interface_id,
+          name: hoge_interface.name.to_string(),
+          display_order: hoge_interface.display_order,
+          version: hoge_interface.version,
+        })
+        .collect(),
+      sockets: dao::body_free_socket::find_free_sockets_list( &connection, robot.id )
+        .unwrap()
+        .iter()
+        .map(|socket| SocketEntry {
+          body_id: socket.body_id,
+          x: socket.x,
+          y: socket.y,
+          operator: socket.operator.clone(),
+          num: socket.num,
+          version: socket.version,
+        })
+        .collect(),
     });
-
   });
 }
 
@@ -171,51 +150,72 @@ pub fn find_list(
         display_order: robot.display_order,
         version: robot.version,
         having: Some(true),
-        statuses: vec![
-          StatusEntry {
-            body_id: 3,
-            parameter_id: 4,
-            num: Some(4),
-            status_version: 2,
-            name: String::from("HP"),
-            display_order: 4,
-            is_deleted: false,
-            parameter_version: 5,
-          },
-        ],
-        hoge_interfaces: vec![
-          HogeInterfaceEntry {
-            body_id: 3,
-            hoge_interface_id: 2,
-            bodies_hoge_interfaces_version: 3,
-            name: String::from("右腕"),
-            display_order: 2,
-            is_deleted: false,
-            hoge_interface_version: 1,
-          },
-        ],
-        sockets: vec![
-          SocketEntry {
-            body_id: 2,
-            x: 4,
-            y: 9,
-            operator: Some(String::from("plus")),
-            num: Some(2),
-            version: 9,
-          },
-        ],
+        statuses: dao::body_status::find_body_statuses_list( &connection, robot.id )
+          .unwrap()
+          .iter()
+          .map(|status| StatusEntry {
+            body_id: status.body_id,
+            parameter_id: status.parameter_id,
+            name: status.name.to_string(),
+            display_order: status.display_order,
+            num: status.num,
+            version: status.version,
+          })
+          .collect(),
+        hoge_interfaces: dao::body_hoge_interface::find_body_hoge_interfaces_list( &connection, robot.id )
+          .unwrap()
+          .iter()
+          .map(|hoge_interface| HogeInterfaceEntry{
+            body_id: hoge_interface.body_id,
+            hoge_interface_id: hoge_interface.hoge_interface_id,
+            name: hoge_interface.name.to_string(),
+            display_order: hoge_interface.display_order,
+            version: hoge_interface.version,
+          })
+          .collect(),
+        sockets: dao::body_free_socket::find_free_sockets_list( &connection, robot.id )
+          .unwrap()
+          .iter()
+          .map(|socket| SocketEntry {
+            body_id: socket.body_id,
+            x: socket.x,
+            y: socket.y,
+            operator: socket.operator.clone(),
+            num: socket.num,
+            version: socket.version,
+          })
+          .collect(),
       })
       .collect(),
     });
   });
 }
 
+// 空きソケット登録用Entry
+pub struct RegisterSocketEntry {
+  pub x: i32,                   // X座標
+  pub y: i32,                   // Y座標
+  pub operator: Option<String>, // 演算子
+  pub num: Option<i32>,         // 増減値
+}
+// hogeインタフェース登録用Entry
+pub struct RegisterHogeInterfaceEntry {
+  pub hoge_interface_id: i32, // hogeインタフェースID
+}
+// ステータス登録用Entry
+pub struct RegisterStatusEntry {
+  pub parameter_id: i32, // パラメータID
+  pub num: i32,          // 増減値
+}
 // 素体登録
 pub fn register(
-  _name: String,           // 素体名
-  _ruby: Option<String>,   // ルビ
-  _flavor: Option<String>, // フレーバーテキスト
-  _display_order: i32,     // 表示順
+  _name: String,                                     // 素体名
+  _ruby: Option<String>,                             // ルビ
+  _flavor: Option<String>,                           // フレーバーテキスト
+  _display_order: i32,                               // 表示順
+  _sockets: Vec<RegisterSocketEntry>,                // 空きソケット一覧
+  _hoge_interfaces: Vec<RegisterHogeInterfaceEntry>, // hogeインタフェース一覧
+  _statuses: Vec<RegisterStatusEntry>,               // ステータス一覧
 ) -> Result<usize, Error> {
   let connection = establish_connection();
   return connection.transaction::<usize, _, _>(|| {
@@ -227,6 +227,51 @@ pub fn register(
       _flavor,
       _display_order
     );
+
+    let _body_id = dao::robot::get_max_id(&connection).unwrap().first().unwrap().max_id;
+    println!( "body id is {}" , _body_id );
+
+    let _socket_result = dao::body_free_socket::register_free_sockets(
+      &connection,
+      _sockets.iter().map(|socket| dao::body_free_socket::BodyFreeSocket{
+        body_id: _body_id,
+        x: socket.x,
+        y: socket.y,
+        operator: socket.operator.clone(),
+        num: socket.num,
+        version: 0, // TODO 登録Entryと取得Entryと分けたほうがいい？
+      })
+      .collect(),
+    ).unwrap();
+    println!("socket result is {}" , _socket_result );
+
+    let _hoge_interface_result = dao::body_hoge_interface::register_hoge_interfaces(
+      &connection,
+      _hoge_interfaces.iter().map(|_hoge_interface| dao::body_hoge_interface::BodyHogeInterface{
+        body_id: _body_id,
+        hoge_interface_id: _hoge_interface.hoge_interface_id,
+        name: "".to_string(), // TODO 使わない
+        display_order: 0, // TODO 使わない
+        version: 0, // TODO 登録Entryと取得Entryと分けたほうがいい？
+      })
+      .collect(),
+    ).unwrap();
+    println!("hoge interface result is {}" , _socket_result );
+    
+    let _status_result = dao::body_status::register_body_statuses(
+      &connection,
+      _statuses.iter().map(|_status| dao::body_status::BodyStatus{
+        body_id: _body_id,
+        parameter_id: _status.parameter_id,
+        name: "".to_string(), // TODO 使わない
+        display_order: 0, // TODO 使わない
+        num: _status.num,
+        version: 0, // TODO 登録Entryと取得Entryと分けたほうがいい？
+      })
+      .collect(),
+    ).unwrap();
+    println!("status result is {}" , _socket_result );
+
     // データ加工
     return Ok(result.unwrap());
   });
@@ -234,15 +279,38 @@ pub fn register(
 
 // 素体更新
 pub fn update(
-  _id: i32,                // 素体ID
-  _name: String,           // 素体名
-  _ruby: Option<String>,   // ルビ
-  _flavor: Option<String>, // フレーバーテキスト
-  _display_order: i32,     // 表示順
-  _version: i32,           // バージョン
+  _id: i32,                           // 素体ID
+  _name: String,                      // 素体名
+  _ruby: Option<String>,              // ルビ
+  _flavor: Option<String>,            // フレーバーテキスト
+  _display_order: i32,                // 表示順
+  _version: i32,                      // バージョン
+  _sockets: Vec<RegisterSocketEntry>, // 空きソケット一覧
+  _hoge_interfaces: Vec<RegisterHogeInterfaceEntry>, // hogeインタフェース一覧
+  _statuses: Vec<RegisterStatusEntry>,               // ステータス一覧
 ) -> Result<usize,Error> {
   let connection = establish_connection();
   return connection.transaction::<usize, _, _>(|| {
+
+    let _socket_result = dao::body_free_socket::delete_free_sockets(
+      &connection,
+      _id ,
+    ).unwrap();
+    println!("delete socket result is {}" , _socket_result );
+    
+    let _hoge_interface_result = dao::body_hoge_interface::delete_hoge_interfaces(
+      &connection,
+      _id ,
+    ).unwrap();
+    println!("delete hoge interface result is {}" , _socket_result );
+    
+    let _status_result = dao::body_status::delete_body_statuses(
+      &connection,
+      _id ,
+    ).unwrap();
+    println!("delete status result is {}" , _socket_result );
+
+
     // データ更新
     let result = dao::robot::update(
       &connection,
@@ -253,6 +321,48 @@ pub fn update(
       _display_order,
       _version
     );
+
+    let _socket_result = dao::body_free_socket::register_free_sockets(
+      &connection,
+      _sockets.iter().map(|socket| dao::body_free_socket::BodyFreeSocket{
+        body_id: _id,
+        x: socket.x,
+        y: socket.y,
+        operator: socket.operator.clone(),
+        num: socket.num,
+        version: 0, // TODO 登録Entryと取得Entryと分けたほうがいい？
+      })
+      .collect(),
+    ).unwrap();
+    println!("register socket result is {}" , _socket_result );
+
+    let _hoge_interface_result = dao::body_hoge_interface::register_hoge_interfaces(
+      &connection,
+      _hoge_interfaces.iter().map(|_hoge_interface| dao::body_hoge_interface::BodyHogeInterface{
+        body_id: _id,
+        hoge_interface_id: _hoge_interface.hoge_interface_id,
+        name: "".to_string(), // TODO 使わない
+        display_order: 0, // TODO 使わない
+        version: 0, // TODO 登録Entryと取得Entryと分けたほうがいい？
+      })
+      .collect(),
+    ).unwrap();
+    println!("hoge interface result is {}" , _socket_result );
+    
+    let _status_result = dao::body_status::register_body_statuses(
+      &connection,
+      _statuses.iter().map(|_status| dao::body_status::BodyStatus{
+        body_id: _id,
+        parameter_id: _status.parameter_id,
+        name: "".to_string(), // TODO 使わない
+        display_order: 0, // TODO 使わない
+        num: _status.num,
+        version: 0, // TODO 登録Entryと取得Entryと分けたほうがいい？
+      })
+      .collect(),
+    ).unwrap();
+    println!("status result is {}" , _socket_result );
+
     // データ加工
     return Ok(result.unwrap());
   });

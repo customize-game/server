@@ -5,23 +5,21 @@ use server::service;
 // ステータス
 #[derive(Serialize, Deserialize, Debug)]
 struct StatusOfGetOneResponseEntry {
-    body_id: i32,           // 素体ID
-    parameter_id: i32,      // パラメータID
-    num: Option<i32>,       // 増減値
-    status_version: i32,    // ステータスバージョン
-    name: String,           // パラメータ名
-    display_order: i32,     // 表示順
-    parameter_version: i32, // パラメータバージョン
+    body_id: i32,       // 素体ID
+    parameter_id: i32,  // パラメータID
+    num: i32,           // 増減値
+    name: String,       // パラメータ名
+    display_order: i32, // 表示順
+    version: i32,       // バージョン
 }
 // hogeインタフェース
 #[derive(Serialize, Deserialize, Debug)]
 struct HogeInterfaceOfGetOneResponseEntry {
-    body_id: i32,                        // 素体ID
-    hoge_interface_id: i32,              // hogeインタフェースID
-    bodies_hoge_interfaces_version: i32, // 素体：hogeインタフェースバージョン
-    name: String,                        // hogeインタフェース名
-    display_order: i32,                  // 表示順
-    hoge_interface_version: i32,         // hogeインタフェースバージョン
+    body_id: i32,           // 素体ID
+    hoge_interface_id: i32, // hogeインタフェースID
+    name: String,           // hogeインタフェース名
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // ソケット
 #[derive(Serialize, Deserialize, Debug)]
@@ -77,10 +75,9 @@ pub async fn get_one(
                 body_id: status.body_id,
                 parameter_id: status.parameter_id,
                 num: status.num,
-                status_version: status.status_version,
                 name: status.name.to_string(),
                 display_order: status.display_order,
-                parameter_version: status.parameter_version,
+                version: status.version,
             })
             .collect(),
         hoge_interfaces: robot
@@ -89,10 +86,9 @@ pub async fn get_one(
             .map(|hoge_interface| HogeInterfaceOfGetOneResponseEntry {
                 body_id: hoge_interface.body_id,
                 hoge_interface_id: hoge_interface.hoge_interface_id,
-                bodies_hoge_interfaces_version: hoge_interface.bodies_hoge_interfaces_version,
                 name: hoge_interface.name.to_string(),
                 display_order: hoge_interface.display_order,
-                hoge_interface_version: hoge_interface.hoge_interface_version,
+                version: hoge_interface.version,
             })
             .collect(),
         sockets: robot

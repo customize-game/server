@@ -29,8 +29,6 @@ table! {
         y -> Integer,
         operator -> Nullable<Varchar>,
         num -> Nullable<Integer>,
-        created_datetime -> Datetime,
-        updated_datetime -> Datetime,
         version -> Integer,
     }
 }

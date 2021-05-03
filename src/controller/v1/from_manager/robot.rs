@@ -5,25 +5,21 @@ use server::service;
 // ステータス
 #[derive(Serialize, Deserialize, Debug)]
 struct StatusOfGetOneResponseEntry {
-    body_id: i32,           // 素体ID
-    parameter_id: i32,      // パラメータID
-    num: Option<i32>,       // 増減値
-    status_version: i32,    // ステータスバージョン
-    name: String,           // パラメータ名
-    display_order: i32,     // 表示順
-    is_deleted: bool,       // 削除済みかどうか
-    parameter_version: i32, // パラメータバージョン
+    body_id: i32,       // 素体ID
+    parameter_id: i32,  // パラメータID
+    num: i32,           // 増減値
+    name: String,       // パラメータ名
+    display_order: i32, // 表示順
+    version: i32,       // バージョン
 }
 // hogeインタフェース
 #[derive(Serialize, Deserialize, Debug)]
 struct HogeInterfaceOfGetOneResponseEntry {
-    body_id: i32,                        // 素体ID
-    hoge_interface_id: i32,              // hogeインタフェースID
-    bodies_hoge_interfaces_version: i32, // 素体：hogeインタフェースバージョン
-    name: String,                        // hogeインタフェース名
-    display_order: i32,                  // 表示順
-    is_deleted: bool,                    // 削除済みかどうか
-    hoge_interface_version: i32,         // hogeインタフェースバージョン
+    body_id: i32,           // 素体ID
+    hoge_interface_id: i32, // hogeインタフェースID
+    name: String,           // hogeインタフェース名
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // ソケット
 #[derive(Serialize, Deserialize, Debug)]
@@ -49,6 +45,8 @@ struct GetOneResponseEntry {
     sockets: Vec<SocketOfGetOneResponseEntry>,                // ソケット
 }
 // ロボット取得API
+// ex.)
+//   curl -X GET -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/robots/3 | jq
 #[get("/api/v1/manager/robots/{body_id}")]
 pub async fn get_one(
     web::Path(body_id): web::Path<i32>, // ロボットID - パスパラメータ
@@ -77,11 +75,9 @@ pub async fn get_one(
                 body_id: status.body_id,
                 parameter_id: status.parameter_id,
                 num: status.num,
-                status_version: status.status_version,
                 name: status.name.to_string(),
                 display_order: status.display_order,
-                is_deleted: status.is_deleted,
-                parameter_version: status.parameter_version,
+                version: status.version,
             })
             .collect(),
         hoge_interfaces: robot
@@ -90,11 +86,9 @@ pub async fn get_one(
             .map(|hoge_interface| HogeInterfaceOfGetOneResponseEntry {
                 body_id: hoge_interface.body_id,
                 hoge_interface_id: hoge_interface.hoge_interface_id,
-                bodies_hoge_interfaces_version: hoge_interface.bodies_hoge_interfaces_version,
                 name: hoge_interface.name.to_string(),
                 display_order: hoge_interface.display_order,
-                is_deleted: hoge_interface.is_deleted,
-                hoge_interface_version: hoge_interface.hoge_interface_version,
+                version: hoge_interface.version,
             })
             .collect(),
         sockets: robot
@@ -135,6 +129,8 @@ struct GetListResponseEntry {
     robots: Vec<RobotEntryOfGetListResponseEntry>, // 装備一覧
 }
 // ロボット一覧取得API
+// ex.)
+//   curl -X GET -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/robots | jq
 #[get("/api/v1/manager/robots")]
 pub async fn get_list(
     query: web::Query<GetListRequest>, // クエリパラメータ
@@ -171,13 +167,30 @@ pub async fn get_list(
     });
 }
 
+// ロボット登録APIの空きソケット
+#[derive(Deserialize)]
+pub struct FreeSocketOfRegisterRequestBody {
+    x: i32,                   // X座標
+    y: i32,                   // Y座標
+    operator: Option<String>, // 演算子
+    num: Option<i32>,         // 増減値
+}
+// ロボット登録APIのステータス
+#[derive(Deserialize)]
+pub struct StatusOfRegisterRequestBody {
+    parameter_id: i32, // パラメータID
+    num: i32,          // 増減値
+}
 // ロボット登録APIリクエスト
 #[derive(Deserialize)]
 pub struct RegisterRequestBody {
-    name: String,           // ロボット名
-    ruby: Option<String>,   // ルビ
-    flavor: Option<String>, // フレーバーテキスト
-    display_order: i32,     // 表示順
+    name: String,                                             // ロボット名
+    ruby: Option<String>,                                     // ルビ
+    flavor: Option<String>,                                   // フレーバーテキスト
+    display_order: i32,                                       // 表示順
+    sockets: Vec<FreeSocketOfRegisterRequestBody>,            // 空きソケット一覧
+    hoge_interfaces: Vec<i32>, // hogeインタフェース一覧
+    statuses: Vec<StatusOfRegisterRequestBody>,               // ステータス一覧
 }
 // ロボット登録APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -186,7 +199,7 @@ struct RegisterResponseEntry {
 }
 // ロボット登録API
 // ex.)
-//   curl -X POST -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/robots --data '{ "name":"ザク" , "ruby": "ザク", "flavor": "量産型のやられやく。", "display_order":345 }' | jq
+//   curl -X POST -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/robots --data '{"name": "ザク2","ruby": "ザクツー","flavor": "強くなったやられ役","display_order": 323,"sockets": [{"x": 24,"y": 2,"operator": "plus","num": 3},{"x": 1,"y": 4,"operator": "minus","num": 4},{"x": 1,"y": 3}],"hoge_interfaces":[1,3,5],"statuses":[{"parameter_id":1,"num":3},{"parameter_id":3,"num":4},{"parameter_id":2,"num":5}]}' | jq
 #[post("/api/v1/manager/robots")]
 pub async fn register(
     request_body: web::Json<RegisterRequestBody>, // リクエストボディ
@@ -202,7 +215,23 @@ pub async fn register(
         name, 
         ruby, 
         flavor, 
-        display_order
+        display_order,
+        request_body.sockets.iter().map(|socket|service::robot::RegisterSocketEntry{
+            x: socket.x,
+            y: socket.y,
+            operator: socket.operator.clone(),
+            num: socket.num,
+        })
+        .collect(),
+        request_body.hoge_interfaces.iter().map(|hoge_interface|service::robot::RegisterHogeInterfaceEntry{
+            hoge_interface_id: *hoge_interface,
+        })
+        .collect(),
+        request_body.statuses.iter().map(|status|service::robot::RegisterStatusEntry{
+            parameter_id: status.parameter_id,
+            num: status.num,
+        })
+        .collect(),
     ).unwrap();
 
     // レスポンス加工
@@ -211,6 +240,20 @@ pub async fn register(
     });
 }
 
+// ロボット更新APIの空きソケット
+#[derive(Deserialize)]
+pub struct FreeSocketOfUpdateRequestBody {
+    x: i32,                   // X座標
+    y: i32,                   // Y座標
+    operator: Option<String>, // 演算子
+    num: Option<i32>,         // 増減値
+}
+// ロボット更新APIのステータス
+#[derive(Deserialize)]
+pub struct StatusOfUpdateRequestBody {
+    parameter_id: i32, // パラメータID
+    num: i32,          // 増減値
+}
 // ロボット更新APIリクエスト
 #[derive(Deserialize)]
 pub struct UpdateRequestBody {
@@ -219,6 +262,9 @@ pub struct UpdateRequestBody {
     flavor: Option<String>, // フレーバーテキスト
     display_order: i32,     // 表示順
     version: i32,           // バージョン
+    sockets: Vec<FreeSocketOfUpdateRequestBody>, // 空きソケット一覧
+    hoge_interfaces: Vec<i32>, // hogeインタフェース一覧
+    statuses: Vec<StatusOfUpdateRequestBody>,               // ステータス一覧
 }
 // ロボット更新APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -226,6 +272,8 @@ struct UpdateResponseEntry {
     update_count: usize, // 更新件数
 }
 // ロボット更新API
+// ex.)
+//   curl -X PUT -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/robots/3 --data '{"name": "ザク3","ruby": "ザクスリー","flavor": "さらに強くなった","display_order": 223,"version":0,"sockets": [{"x": 2,"y": 12,"operator": "plus","num": 33},{"x": 1,"y": 41,"operator": "minus","num": 41},{"x": 1,"y": 3}],"hoge_interfaces":[1,3,5,2,4,6],"statuses":[{"parameter_id":2,"num":3},{"parameter_id":3,"num":4},{"parameter_id":4,"num":5}]}' | jq
 #[put("/api/v1/manager/robots/{body_id}")]
 pub async fn update(
     web::Path(body_id): web::Path<i32>, // ロボットID - パスパラメータ
@@ -247,6 +295,22 @@ pub async fn update(
         flavor,
         display_order,
         version,
+        request_body.sockets.iter().map(|socket|service::robot::RegisterSocketEntry{
+            x: socket.x,
+            y: socket.y,
+            operator: socket.operator.clone(),
+            num: socket.num,
+        })
+        .collect(),
+        request_body.hoge_interfaces.iter().map(|hoge_interface|service::robot::RegisterHogeInterfaceEntry{
+            hoge_interface_id: *hoge_interface,
+        })
+        .collect(),
+        request_body.statuses.iter().map(|status|service::robot::RegisterStatusEntry{
+            parameter_id: status.parameter_id,
+            num: status.num,
+        })
+        .collect(),
     ).unwrap();
 
     // レスポンス加工
@@ -266,6 +330,8 @@ struct DeleteResponseEntry {
     delete_count: usize, // 削除件数
 }
 // ロボット削除API
+// ex.)
+//   curl -X DELETE -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/robots/4 --data '{"version":0}' | jq
 #[delete("/api/v1/manager/robots/{body_id}")]
 pub async fn delete(
     web::Path(body_id): web::Path<i32>,         // ロボットID - パスパラメータ

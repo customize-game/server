@@ -4,7 +4,20 @@ use diesel::prelude::*;
 use diesel::sql_query;
 use diesel::sql_types::Integer;
 use diesel::sql_types::Varchar;
-use diesel::sql_types::Text;
+
+// ID最大値取得用Entry
+// TODO もっと簡単にとれる方法はないのか・・・
+#[derive(Debug, Queryable)]
+pub struct MaxId {
+  pub max_id: i32, // 素体ID
+}
+impl QueryableByName<Mysql> for MaxId {
+  fn build<R: diesel::row::NamedRow<Mysql>>(row: &R) -> diesel::deserialize::Result<Self> {
+    return Ok(MaxId {
+      max_id: row.get("max_id")?,
+    });
+  }
+}
 
 #[derive(Debug, Queryable)]
 pub struct Robot {
@@ -14,7 +27,6 @@ pub struct Robot {
   pub flavor: Option<String>,       // フレーバーテキスト
   pub display_order: i32,           // 表示順
   pub version: i32,                 // バージョン
-  pub sockets: Vec<BodyFreeSocket>, // 空きソケット
 }
 impl QueryableByName<Mysql> for Robot {
   fn build<R: diesel::row::NamedRow<Mysql>>(row: &R) -> diesel::deserialize::Result<Self> {
@@ -25,31 +37,23 @@ impl QueryableByName<Mysql> for Robot {
       flavor: row.get("flavor")?,
       display_order: row.get("display_order")?,
       version: row.get("version")?,
-      sockets: vec![],
     });
   }
 }
 
-#[derive(Debug, Queryable)]
-pub struct BodyFreeSocket {
-  pub body_id: i32,             // 素体ID
-  pub x: i32,                   // X座標
-  pub y: i32,                   // Y座標
-  pub operator: Option<String>, // 演算子
-  pub num: Option<i32>,         // 増減値
-  pub version: i32,             // バージョン
-}
-impl QueryableByName<Mysql> for BodyFreeSocket {
-  fn build<R: diesel::row::NamedRow<Mysql>>(row: &R) -> diesel::deserialize::Result<Self> {
-    return Ok(BodyFreeSocket {
-      body_id: row.get("bfs_body_id")?,
-      x: row.get("bfs_x")?,
-      y: row.get("bfs_y")?,
-      operator: row.get("bfs_operator")?,
-      num: row.get("bfs_num")?,
-      version: row.get("bfs_version")?,
-    });
-  }
+// IDの最大値を取得
+// TODO 登録時に他テーブルに登録する際にIDを取得できないといけない 何か他にいい方法はないのか
+pub fn get_max_id(
+  _connection: &diesel::MysqlConnection, // 接続情報
+) -> Result<Vec<MaxId>, diesel::result::Error> {
+  let result: Result<Vec<MaxId>, diesel::result::Error> = sql_query( 
+    "SELECT
+      MAX(b.id) AS max_id
+    FROM
+      bodies b"
+  )
+  .load(_connection);
+  return result;
 }
 
 // 素体取得
@@ -66,13 +70,7 @@ pub fn find_by_id(
       b.ruby ,
       b.flavor ,
       b.display_order ,
-      b.version ,
-      bfs.body_id AS bfs_body_id ,
-      bfs.x AS bfs_x ,
-      bfs.y AS bfs_y ,
-      bfs.operator AS bfs_operator ,
-      bfs.num AS bfs_num ,
-      bfs.version AS bfs_version
+      b.version
     FROM
       bodies b".to_string();
   if let Some(s) = _user_id {
@@ -86,19 +84,11 @@ pub fn find_by_id(
       ", s.to_string() ).to_string()
   }
   query += "
-    LEFT JOIN
-      body_free_sockets bfs
-    ON
-      b.id = bfs.body_id
     WHERE
       b.is_deleted = 0
     AND
       b.id = ?
   ";
-
-  println!("
-  {}
-  ",query);
 
   let result: Result<Vec<Robot>, diesel::result::Error> = sql_query( query )
     .bind::<Integer, _>(_id)
@@ -140,10 +130,10 @@ pub fn find_list(
       match _only_having {
         None => " LEFT JOIN ".to_string(),
         Some(s) => if s { 
-          " INNER JOIN".to_string() 
+          " INNER JOIN ".to_string() 
         }
         else { 
-          "LEFT JOIN".to_string()
+          " LEFT JOIN ".to_string()
         }
       } ,
       s.to_string() 
