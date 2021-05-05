@@ -5,29 +5,27 @@ use server::service;
 // hogeインタフェース取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: u32,            // hogeインタフェースID
+    id: i32,            // hogeインタフェースID
     name: String,       // hogeインタフェース名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
-    version: u32,       // バージョン
+    display_order: i32, // 表示順
+    version: i32,       // バージョン
 }
 // hogeインタフェース取得API
+// ex.)
+//    curl -X GET -v http://localhost:5000/api/v1/manager/hoge-interfaces/1 | jq
 #[get("/api/v1/manager/hoge-interfaces/{hoge_interface_id}")]
 pub async fn get_one(
-    web::Path(hoge_interface_id): web::Path<u32>, // hogeインタフェースID - パスパラメータ
+    web::Path(hoge_interface_id): web::Path<i32>, // hogeインタフェースID - パスパラメータ
 ) -> impl Responder {
-    // リクエスト取得
-    let hoge_interface_id: Option<u32> = Some(hoge_interface_id);
-
+    
     // データ取得
-    let hoge_interface = service::hoge_interface::find_by_id(hoge_interface_id.unwrap());
+    let hoge_interface = service::hoge_interface::find_by_id(hoge_interface_id).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetOneResponseEntry {
         id: hoge_interface.id,
         name: hoge_interface.name,
         display_order: hoge_interface.display_order,
-        is_deleted: hoge_interface.is_deleted,
         version: hoge_interface.version,
     });
 }
@@ -35,25 +33,26 @@ pub async fn get_one(
 // hogeインタフェース一覧取得APIクエリパラメータ
 #[derive(Deserialize)]
 pub struct GetListRequest {
-    sort_by: Option<u32>, // ソート種別
-    limit: Option<u32>,   // 取得数
-    offset: Option<u32>,  // 取得位置
+    sort_by: Option<i32>, // ソート種別
+    limit: Option<i32>,   // 取得数
+    offset: Option<i32>,  // 取得位置
 }
 // hogeインタフェース一覧取得APIレスポンスのhogeインタフェース
 #[derive(Serialize, Deserialize, Debug)]
 struct HogeInterfaceEntryOfGetListResponseEntry {
-    id: u32,            // hogeインタフェースID
+    id: i32,            // hogeインタフェースID
     name: String,       // hogeインタフェース名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
+    display_order: i32, // 表示順
 }
 // hogeインタフェース一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetListResponseEntry {
-    total_count: u32,                                               // 合計数
+    total_count: usize,                                             // 合計数
     hoge_interfaces: Vec<HogeInterfaceEntryOfGetListResponseEntry>, // hogeインタフェース一覧
 }
 // hogeインタフェース一覧取得API
+// ex.)
+//   curl -X GET -v http://localhost:5000/api/v1/manager/hoge-interfaces | jq
 #[get("/api/v1/manager/hoge-interfaces")]
 pub async fn get_list(
     query: web::Query<GetListRequest>, // クエリパラメータ
@@ -64,7 +63,7 @@ pub async fn get_list(
     let offset = query.offset;
 
     // データ取得
-    let hoge_interfaces = service::hoge_interface::find_list(sort_by, limit, offset);
+    let hoge_interfaces = service::hoge_interface::find_list(sort_by, limit, offset).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetListResponseEntry {
@@ -76,7 +75,6 @@ pub async fn get_list(
                 id: hoge_interface.id,
                 name: hoge_interface.name.to_string(),
                 display_order: hoge_interface.display_order,
-                is_deleted: hoge_interface.is_deleted,
             })
             .collect(),
     });
@@ -86,16 +84,16 @@ pub async fn get_list(
 #[derive(Deserialize)]
 pub struct RegisterRequestBody {
     name: String,       // hogeインタフェース名
-    display_order: u32, // 表示順
+    display_order: i32, // 表示順
 }
 // hogeインタフェース登録APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct RegisterResponseEntry {
-    id: u32,            // hogeインタフェースID
-    name: String,       // hogeインタフェース名
-    display_order: u32, // 表示順
+    register_count: usize, // 登録件数
 }
 // hogeインタフェース登録API
+// ex.)
+//   curl -X POST -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/hoge-interfaces --data '{ "name":"右手" , "display_order":345 }' | jq
 #[post("/api/v1/manager/hoge-interfaces")]
 pub async fn register(
     request_body: web::Json<RegisterRequestBody>, // リクエストボディ
@@ -105,13 +103,11 @@ pub async fn register(
     let display_order = request_body.display_order;
 
     // データ登録
-    let hoge_interface = service::hoge_interface::register(name, display_order);
+    let register_count = service::hoge_interface::register(name, display_order).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(RegisterResponseEntry {
-        id: hoge_interface.id,
-        name: hoge_interface.name,
-        display_order: hoge_interface.display_order,
+        register_count: register_count,
     });
 }
 
@@ -119,74 +115,67 @@ pub async fn register(
 #[derive(Deserialize)]
 pub struct UpdateRequestBody {
     name: String,       // hogeインタフェース名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
+    display_order: i32, // 表示順
+    version: i32,       // バージョン
 }
 // 装備更新APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct UpdateResponseEntry {
-    id: u32,            // hogeインタフェースID
-    name: String,       // hogeインタフェース名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
-    version: u32,       // バージョン
+    update_count: usize, // 更新件数
 }
 // hogeインタフェース更新API
+// ex.)
+//   curl -X PUT -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/hoge-interfaces/3 --data '{ "name":"左手" , "display_order":2, "version":0 }' | jq
 #[put("/api/v1/manager/hoge-interfaces/{hoge_interface_id}")]
 pub async fn update(
-    web::Path(hoge_interface_id): web::Path<u32>, // hogeインタフェースID - パスパラメータ
+    web::Path(hoge_interface_id): web::Path<i32>, // hogeインタフェースID - パスパラメータ
     request_body: web::Json<UpdateRequestBody>,   // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let hoge_interface_id: Option<u32> = Some(hoge_interface_id);
     let name = request_body.name.to_string();
     let display_order = request_body.display_order;
-    let is_deleted = request_body.is_deleted;
+    let version = request_body.version;
 
     // データ更新
-    let hoge_interface = service::hoge_interface::update(
-        hoge_interface_id.unwrap(),
+    let update_count = service::hoge_interface::update(
+        hoge_interface_id,
         name,
         display_order,
-        is_deleted,
-    );
+        version ,
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(UpdateResponseEntry {
-        id: hoge_interface.id,
-        name: hoge_interface.name,
-        display_order: hoge_interface.display_order,
-        is_deleted: hoge_interface.is_deleted,
-        version: hoge_interface.version,
+        update_count: update_count,
     });
 }
 
+// hogeインタフェース削除APIリクエスト
+#[derive(Deserialize)]
+pub struct DeleteRequestBody {
+    version: i32, // バージョン
+}
 // hogeインタフェース削除APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct DeleteResponseEntry {
-    id: u32,            // hogeインタフェースID
-    name: String,       // hogeインタフェース名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
-    version: u32,       // バージョン
+    delete_count: usize, // 削除件数
 }
 // hogeインタフェース削除API
+// ex.)
+//   curl -X DELETE -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/hoge-interfaces/3 --data '{ "version":1 }' | jq
 #[delete("/api/v1/manager/hoge-interfaces/{hoge_interface_id}")]
 pub async fn delete(
-    web::Path(hoge_interface_id): web::Path<u32>, // hogeインタフェースID - パスパラメータ
+    web::Path(hoge_interface_id): web::Path<i32>, // hogeインタフェースID - パスパラメータ
+    request_body: web::Json<DeleteRequestBody>,   // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let hoge_interface_id: Option<u32> = Some(hoge_interface_id);
+    let version = request_body.version;
 
     // データ削除
-    let hoge_interface = service::hoge_interface::delete(hoge_interface_id.unwrap());
+    let delete_count = service::hoge_interface::delete(hoge_interface_id, version).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(DeleteResponseEntry {
-        id: hoge_interface.id,
-        name: hoge_interface.name,
-        display_order: hoge_interface.display_order,
-        is_deleted: hoge_interface.is_deleted,
-        version: hoge_interface.version,
+        delete_count: delete_count,
     });
 }
