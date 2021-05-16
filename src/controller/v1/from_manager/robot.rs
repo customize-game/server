@@ -109,7 +109,7 @@ pub async fn get_one(
 // ロボット一覧取得APIクエリパラメータ
 #[derive(Deserialize)]
 pub struct GetListRequest {
-    sort_by: Option<i32>, // ソート種別
+    sort_by: Option<String>, // ソート種別
     limit: Option<i32>,   // 取得数
     offset: Option<i32>,  // 取得位置
 }
@@ -138,7 +138,7 @@ pub async fn get_list(
     // リクエスト取得
     let user_id = None;
     let only_having = None;
-    let sort_by = query.sort_by;
+    let sort_by = query.sort_by.clone();
     let limit = query.limit;
     let offset = query.offset;
     // データ取得

@@ -56,10 +56,14 @@ pub fn find_list(
       _limit,
       _offset
     ).unwrap();
+    let total_count = dao::hoge_interface::find_list(
+      &connection,
+      None,None,None
+    ).unwrap().len();
 
     // データ加工
     return Ok(HogeInterfaceTemplate{
-      total_count: result.len() ,
+      total_count: total_count ,
       hoge_interfaces: result.iter().map(|hoge_interface| HogeInterfaceEntry {
         id: hoge_interface.id,
         name: hoge_interface.name.clone(),

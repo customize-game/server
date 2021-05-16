@@ -4,20 +4,19 @@ use diesel::prelude::*;
 use diesel::sql_query;
 use diesel::sql_types::Integer;
 
-// TODO numはnull許可
 #[derive(Debug, Queryable)]
-pub struct BodyStatus {
-  pub body_id: i32,       // 素体ID
+pub struct EquipmentStatus {
+  pub equipment_id: i32,  // 装備ID
   pub parameter_id: i32,  // パラメータID
   pub name: String,       // パラメータ名
   pub display_order: i32, // 表示順
   pub num: i32,           // 増減値
   pub version: i32,       // バージョン TODO 素体ステータスの？　パラメータの？
 }
-impl QueryableByName<Mysql> for BodyStatus {
+impl QueryableByName<Mysql> for EquipmentStatus {
   fn build<R: diesel::row::NamedRow<Mysql>>(row: &R) -> diesel::deserialize::Result<Self> {
-    return Ok(BodyStatus {
-      body_id: row.get("body_id")?,
+    return Ok(EquipmentStatus {
+      equipment_id: row.get("equipment_id")?,
       parameter_id: row.get("parameter_id")?,
       name: row.get("name")?,
       display_order: row.get("display_order")?,
@@ -27,48 +26,49 @@ impl QueryableByName<Mysql> for BodyStatus {
   }
 }
 
-// 素体ステータス一覧取得
-pub fn find_body_statuses_list(
+// 装備ステータス一覧取得
+// TODO テーブル名修正 equipment_statuses
+pub fn find_equipment_statuses_list(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _body_id: i32,                         // 素体ID
-) -> Result<Vec<BodyStatus>, diesel::result::Error> {
-  let result: Result<Vec<BodyStatus>, diesel::result::Error> = sql_query(
+  _equipment_id: i32,                    // 装備ID
+) -> Result<Vec<EquipmentStatus>, diesel::result::Error> {
+  let result: Result<Vec<EquipmentStatus>, diesel::result::Error> = sql_query(
     "SELECT
-      bs.body_id ,
-      bs.parameter_id ,
+      es.equipment_id ,
+      es.parameter_id ,
       p.name ,
       p.display_order ,
-      bs.num ,
+      es.num ,
       p.version
     FROM
       parameters p
     INNER JOIN
-      body_statuses bs
+      equipment_status es
     ON
-      p.id = bs.parameter_id
+      p.id = es.parameter_id
     AND
-      bs.body_id = ?
+      es.equipment_id = ?
     AND
       p.is_deleted = 0
     ", 
   )
-  .bind::<Integer, _>(_body_id)
+  .bind::<Integer, _>(_equipment_id)
   .load(_connection);
   return result;
 }
 
-// 素体ステータス登録
-pub fn register_body_statuses(
+// 装備ステータス登録
+pub fn register_equipment_statuses(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _statuses: Vec<BodyStatus>,            // 素体ステータス一覧
+  _statuses: Vec<EquipmentStatus>,       // 素体ステータス一覧
 ) -> Result<usize, diesel::result::Error> {
   if _statuses.len() == 0 {
     return Ok(0);
   }
   let mut query = "
     INSERT INTO
-      body_statuses (
-        body_id ,
+      equipment_status (
+        equipment_id ,
         parameter_id ,
         num ,
         created_datetime ,
@@ -92,7 +92,7 @@ pub fn register_body_statuses(
       now() ,
       now() ,
       0 ) ",
-      _status.body_id ,
+      _status.equipment_id ,
       _status.parameter_id ,
       _status.num
     ).to_string();
@@ -102,17 +102,17 @@ pub fn register_body_statuses(
   return result;
 }
 
-// 素体ステータス削除
+// 装備ステータス削除
 // TODO versionの扱い検討
-pub fn delete_body_statuses(
+pub fn delete_equipment_statuses(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _id: i32,                              // 素体ID
+  _id: i32,                              // 装備ID
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "DELETE FROM
-      body_statuses
+      equipment_status
     WHERE
-      body_id = ?
+      equipment_id = ?
     ",
   )
   .bind::<Integer, _>(_id)

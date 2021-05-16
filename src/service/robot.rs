@@ -7,12 +7,12 @@ use crate::utils::establish_connection;
 
 // ステータス
 pub struct StatusEntry {
-  pub body_id: i32,           // 素体ID
-  pub parameter_id: i32,      // パラメータID
-  pub num: i32,               // 増減値
-  pub name: String,           // パラメータ名
-  pub display_order: i32,     // 表示順
-  pub version: i32, // パラメータバージョン
+  pub body_id: i32,       // 素体ID
+  pub parameter_id: i32,  // パラメータID
+  pub num: i32,           // 増減値
+  pub name: String,       // パラメータ名
+  pub display_order: i32, // 表示順
+  pub version: i32,       // パラメータバージョン
 }
 
 // hogeインタフェース
@@ -122,7 +122,7 @@ pub fn find_by_id(
 pub fn find_list(
   _user_id: Option<i32>,      // ユーザID
   _only_having: Option<bool>, // 取得した素体のみを取得するかどうか
-  _sort_by: Option<i32>,      // ソート種別
+  _sort_by: Option<String>,   // ソート種別
   _limit: Option<i32>,        // 取得数
   _offset: Option<i32>,       // 取得位置
 ) -> Result<RobotTemplate, Error> {
@@ -370,7 +370,7 @@ pub fn update(
 
 // 素体削除
 pub fn delete(
-  _id: i32, // 素体ID
+  _id: i32,      // 素体ID
   _version: i32, // バージョン
 ) -> Result<usize,Error> {
   let connection = establish_connection();

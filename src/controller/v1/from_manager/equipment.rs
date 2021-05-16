@@ -5,25 +5,29 @@ use server::service;
 // 装備取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: u32,                // 装備ID
+    id: i32,                // 装備ID
     name: String,           // 装備名
     ruby: Option<String>,   // ルビ
     flavor: Option<String>, // フレーバーテキスト
-    add_socket_count: u32,  // 装備時に増えるソケット数
-    display_order: u32,     // 表示順
-    is_deleted: bool,       // 削除済みかどうか
-    version: u32,           // バージョン
+    add_socket_count: i32,  // 装備時に増えるソケット数
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // 装備取得API
+// ex.)
+//   curl -X GET -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/equipments/2 | jq
 #[get("/api/v1/manager/equipments/{equipment_id}")]
 pub async fn get_one(
-    web::Path(equipment_id): web::Path<u32>, // 装備ID - パスパラメータ
+    web::Path(equipment_id): web::Path<i32>, // 装備ID - パスパラメータ
 ) -> impl Responder {
-    // リクエスト取得
-    let equipment_id: Option<u32> = Some(equipment_id);
+    
+    let user_id = None;
 
     // データ取得
-    let equipment = service::equipment::find_by_id(equipment_id.unwrap());
+    let equipment = service::equipment::find_by_id(
+        equipment_id,
+        user_id,
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetOneResponseEntry {
@@ -33,7 +37,6 @@ pub async fn get_one(
         flavor: equipment.flavor,
         add_socket_count: equipment.add_socket_count,
         display_order: equipment.display_order,
-        is_deleted: equipment.is_deleted,
         version: equipment.version,
     });
 }
@@ -41,40 +44,47 @@ pub async fn get_one(
 // 装備一覧取得APIクエリパラメータ
 #[derive(Deserialize)]
 pub struct GetListRequest {
-    sort_by: Option<u32>, // ソート種別
-    limit: Option<u32>,   // 取得数
-    offset: Option<u32>,  // 取得位置
+    sort_by: Option<String>, // ソート種別
+    limit: Option<i32>,      // 取得数
+    offset: Option<i32>,     // 取得位置
 }
 // 装備一覧取得APIレスポンスの装備
 #[derive(Serialize, Deserialize, Debug)]
 struct EquipmentEntryOfGetListResponseEntry {
-    id: u32,                // 装備ID
+    id: i32,                // 装備ID
     name: String,           // 装備名
     ruby: Option<String>,   // ルビ
     flavor: Option<String>, // フレーバーテキスト
-    add_socket_count: u32,  // 装備時に増えるソケット数
-    display_order: u32,     // 表示順
-    is_deleted: bool,       // 削除済みかどうか
+    add_socket_count: i32,  // 装備時に増えるソケット数
+    display_order: i32,     // 表示順
 }
 // 装備一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetListResponseEntry {
-    total_count: u32,                                      // 合計数
+    total_count: usize,                                    // 合計数
     equipments: Vec<EquipmentEntryOfGetListResponseEntry>, // 装備一覧
 }
 // 装備一覧取得API
+// ex.)
+//   curl -X GET -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/equipments | jq
 #[get("/api/v1/manager/equipments")]
 pub async fn get_list(
     query: web::Query<GetListRequest>, // クエリパラメータ
 ) -> impl Responder {
     // リクエスト取得
     let only_having = Some(true);
-    let sort_by = query.sort_by;
+    let sort_by = query.sort_by.clone();
     let limit = query.limit;
     let offset = query.offset;
 
     // データ取得
-    let equipments = service::equipment::find_list(None, only_having, sort_by, limit, offset);
+    let equipments = service::equipment::find_list(
+        None, 
+        only_having, 
+        sort_by, 
+        limit, 
+        offset
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetListResponseEntry {
@@ -89,7 +99,6 @@ pub async fn get_list(
                 flavor: equipment.flavor.clone(),
                 add_socket_count: equipment.add_socket_count,
                 display_order: equipment.display_order,
-                is_deleted: equipment.is_deleted,
             })
             .collect(),
     });
@@ -101,21 +110,17 @@ pub struct RegisterRequestBody {
     name: String,           // 装備名
     ruby: Option<String>,   // ルビ
     flavor: Option<String>, // フレーバーテキスト
-    add_socket_count: u32,  // 装備時に増えるソケット数
-    display_order: u32,     // 表示順
+    add_socket_count: i32,  // 装備時に増えるソケット数
+    display_order: i32,     // 表示順
 }
 // 装備登録APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct RegisterResponseEntry {
-    id: u32,                // 装備ID
-    name: String,           // 装備名
-    ruby: Option<String>,   // ルビ
-    flavor: Option<String>, // フレーバーテキスト
-    display_order: u32,     // 装備時に増えるソケット数
-    is_deleted: bool,       // 削除済みかどうか
-    version: u32,           // バージョン
+    register_count: usize, // 登録件数
 }
 // 装備登録API
+// ex.)
+//   curl -X POST -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/equipments --data '{"name":"ビームサーベル" ,"ruby":"びーむさーべる" , "flavor":"強い!", "display_order":3, "add_socket_count":3}' | jq
 #[post("/api/v1/manager/equipments")]
 pub async fn register(
     request_body: web::Json<RegisterRequestBody>, // リクエストボディ
@@ -128,18 +133,17 @@ pub async fn register(
     let display_order = request_body.display_order;
 
     // データ登録
-    let equipment =
-        service::equipment::register(name, ruby, flavor, add_socket_count, display_order);
+    let register_count = service::equipment::register(
+        name, 
+        ruby, 
+        flavor, 
+        add_socket_count, 
+        display_order
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(RegisterResponseEntry {
-        id: equipment.id,
-        name: equipment.name,
-        ruby: equipment.ruby,
-        flavor: equipment.flavor,
-        display_order: equipment.display_order,
-        is_deleted: equipment.is_deleted,
-        version: equipment.version,
+        register_count: register_count,
     });
 }
 
@@ -149,89 +153,77 @@ pub struct UpdateRequestBody {
     name: String,           // 装備名
     ruby: Option<String>,   // ルビ
     flavor: Option<String>, // フレーバーテキスト
-    add_socket_count: u32,  // 装備時に増えるソケット数
-    display_order: u32,     // 表示順
-    is_deleted: bool,       // 削除済みかどうか
+    add_socket_count: i32,  // 装備時に増えるソケット数
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // 装備更新APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct UpdateResponseEntry {
-    id: u32,                // 装備ID
-    name: String,           // 装備名
-    ruby: Option<String>,   // ルビ
-    flavor: Option<String>, // フレーバーテキスト
-    display_order: u32,     // 表示順
-    is_deleted: bool,       // 削除済みかどうか
-    version: u32,           // バージョン
+    update_count: usize, // 更新件数
 }
 // 装備更新API
+// ex.)
+//   curl -X PUT -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/equipments/3 --data '{"name":"ビームサーベル2" ,"ruby":"びーむさーべる2" , "flavor":"強い!!!!", "display_order":33, "add_socket_count":23, "version":0}' | jq
 #[put("/api/v1/manager/equipments/{equipment_id}")]
 pub async fn update(
-    web::Path(equipment_id): web::Path<u32>, // 装備ID - パスパラメータ
+    web::Path(equipment_id): web::Path<i32>, // 装備ID - パスパラメータ
     request_body: web::Json<UpdateRequestBody>, // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let equipment_id: Option<u32> = Some(equipment_id);
     let name = request_body.name.clone();
     let ruby = request_body.ruby.clone();
     let flavor = request_body.flavor.clone();
     let add_socket_count = request_body.add_socket_count;
     let display_order = request_body.display_order;
-    let is_deleted = request_body.is_deleted;
+    let version = request_body.version;
 
     // データ更新
-    let equipment = service::equipment::update(
-        equipment_id.unwrap(),
+    let update_count = service::equipment::update(
+        equipment_id,
         name,
         ruby,
         flavor,
         add_socket_count,
         display_order,
-        is_deleted,
-    );
+        version,
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(UpdateResponseEntry {
-        id: equipment.id,
-        name: equipment.name,
-        ruby: equipment.ruby,
-        flavor: equipment.flavor,
-        display_order: equipment.display_order,
-        is_deleted: equipment.is_deleted,
-        version: equipment.version,
+        update_count: update_count,
     });
 }
 
+// 装備削除APIリクエスト
+#[derive(Deserialize)]
+pub struct DeleteRequestBody {
+    version: i32, // バージョン
+}
 // 装備削除APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct DeleteResponseEntry {
-    id: u32,                // 装備ID
-    name: String,           // 装備名
-    ruby: Option<String>,   // ルビ
-    flavor: Option<String>, // フレーバーテキスト
-    display_order: u32,     // 表示順
-    is_deleted: bool,       // 削除済みかどうか
-    version: u32,           // バージョン
+    delete_count: usize, // 削除件数
 }
 // 装備削除API
+// ex.)
+//   curl -X DELETE -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/equipments/2 --data '{"version":0}' | jq
 #[delete("/api/v1/manager/equipments/{equipment_id}")]
 pub async fn delete(
-    web::Path(equipment_id): web::Path<u32>, // 装備ID - パスパラメータ
+    web::Path(equipment_id): web::Path<i32>,    // 装備ID - パスパラメータ
+    request_body: web::Json<DeleteRequestBody>, // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let equipment_id: Option<u32> = Some(equipment_id);
+    let version = request_body.version;
 
     // データ削除
-    let equipment = service::equipment::delete(equipment_id.unwrap());
+    let delete_count = service::equipment::delete(
+        equipment_id,
+        version
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(DeleteResponseEntry {
-        id: equipment.id,
-        name: equipment.name,
-        ruby: equipment.ruby,
-        flavor: equipment.flavor,
-        display_order: equipment.display_order,
-        is_deleted: equipment.is_deleted,
-        version: equipment.version,
+        delete_count: delete_count,
     });
 }

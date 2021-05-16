@@ -5,10 +5,11 @@ use server::service;
 // パラメータ取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: i32,            // パラメータID
-    name: String,       // パラメータ名
-    display_order: i32, // 表示順
-    version: i32,       // バージョン
+    id: i32,                // パラメータID
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // パラメータ取得API
 // ex.)
@@ -25,6 +26,7 @@ pub async fn get_one(
     return HttpResponse::Ok().json(GetOneResponseEntry {
         id: parameter.id,
         name: parameter.name,
+        parameter_type: "having".to_string(),
         display_order: parameter.display_order,
         version: parameter.version,
     });
@@ -34,20 +36,23 @@ pub async fn get_one(
 #[derive(Deserialize)]
 pub struct GetListRequest {
     sort_by: Option<String>, // ソート種別
-    limit: Option<i32>,   // 取得数
-    offset: Option<i32>,  // 取得位置
+    limit: Option<i32>,      // 取得数
+    offset: Option<i32>,     // 取得位置
 }
 // パラメータ一覧取得APIレスポンスのパラメータ
+// TODO 種別(あるだけで有効か計算するか)のenumをDBに追加
 #[derive(Serialize, Deserialize, Debug)]
 struct ParameterEntryOfGetListResponseEntry {
-    id: i32,            // パラメータID
-    name: String,       // パラメータ名
-    display_order: i32, // 表示順
+    id: i32,                // パラメータID
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
+    version: i32,
 }
 // パラメータ一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetListResponseEntry {
-    total_count: usize,                                      // 合計数
+    total_count: usize,                                    // 合計数
     parameters: Vec<ParameterEntryOfGetListResponseEntry>, // パラメータ一覧
 }
 // パラメータ一覧取得API
@@ -78,7 +83,9 @@ pub async fn get_list(
             .map(|parameter| ParameterEntryOfGetListResponseEntry {
                 id: parameter.id,
                 name: parameter.name.to_string(),
+                parameter_type: "having".to_string(),
                 display_order: parameter.display_order,
+                version: parameter.version,
             })
             .collect(),
     });
@@ -87,8 +94,9 @@ pub async fn get_list(
 // パラメータ登録APIリクエスト
 #[derive(Deserialize)]
 pub struct RegisterRequestBody {
-    name: String,       // パラメータ名
-    display_order: i32, // 表示順
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
 }
 // パラメータ登録APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -97,7 +105,7 @@ struct RegisterResponseEntry {
 }
 // パラメータ登録API
 // ex.)
-//   curl -X POST -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/parameters --data '{ "name":"攻撃力" , "display_order":2 }' | jq
+//   curl -X POST -H "Content-type: application/json" -v http://localhost:5000/api/v1/manager/parameters --data '{ "name":"攻撃力" , "display_order":2 }' | jq
 #[post("/api/v1/manager/parameters")]
 pub async fn register(
     request_body: web::Json<RegisterRequestBody>, // リクエストボディ
@@ -121,9 +129,10 @@ pub async fn register(
 // パラメータ更新APIリクエスト
 #[derive(Deserialize)]
 pub struct UpdateRequestBody {
-    name: String,       // パラメータ名
-    display_order: i32, // 表示順
-    version: i32,       // バージョン
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // パラメータ更新APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -132,7 +141,7 @@ struct UpdateResponseEntry {
 }
 // パラメータ更新API
 // ex.)
-//   curl -X PUT -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/parameters/3 --data '{ "name":"防御力" , "display_order":29, "version":0 }' | jq
+//   curl -X PUT -H "Content-type: application/json" -v http://localhost:5000/api/v1/manager/parameters/3 --data '{ "name":"防御力" , "display_order":29, "version":0 }' | jq
 #[put("/api/v1/manager/parameters/{parameter_id}")]
 pub async fn update(
     web::Path(parameter_id): web::Path<i32>, // パラメータID - パスパラメータ
@@ -169,7 +178,7 @@ struct DeleteResponseEntry {
 }
 // パラメータ削除API
 // ex.)
-//   curl -X DELETE -H "Content-Type: application/json" -v http://localhost:5000/api/v1/manager/parameters/3 --data '{ "version":1 }' | jq
+//   curl -X DELETE -H "Content-type: application/json" -v http://localhost:5000/api/v1/manager/parameters/3 --data '{ "version":1 }' | jq
 #[delete("/api/v1/manager/parameters/{parameter_id}")]
 pub async fn delete(
     web::Path(parameter_id): web::Path<i32>, // パラメータID - パスパラメータ

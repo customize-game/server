@@ -20,22 +20,24 @@ impl QueryableByName<Mysql> for MaxId {
 }
 
 #[derive(Debug, Queryable)]
-pub struct Robot {
-  pub id: i32,                      // 素体ID
-  pub name: String,                 // 素体名
-  pub ruby: Option<String>,         // 素体名ルビ
+pub struct Equipment {
+  pub id: i32,                      // 装備ID
+  pub name: String,                 // 装備名
+  pub ruby: Option<String>,         // 装備名ルビ
   pub flavor: Option<String>,       // フレーバーテキスト
   pub display_order: i32,           // 表示順
+  pub add_socket_count: i32,        // 装備時に増えるソケット数
   pub version: i32,                 // バージョン
 }
-impl QueryableByName<Mysql> for Robot {
+impl QueryableByName<Mysql> for Equipment {
   fn build<R: diesel::row::NamedRow<Mysql>>(row: &R) -> diesel::deserialize::Result<Self> {
-    return Ok(Robot {
+    return Ok(Equipment {
       id: row.get("id")?,
       name: row.get("name")?,
       ruby: row.get("ruby")?,
       flavor: row.get("flavor")?,
       display_order: row.get("display_order")?,
+      add_socket_count: row.get("add_socket_count")?,
       version: row.get("version")?,
     });
   }
@@ -48,84 +50,86 @@ pub fn get_max_id(
 ) -> Result<Vec<MaxId>, diesel::result::Error> {
   let result: Result<Vec<MaxId>, diesel::result::Error> = sql_query( 
     "SELECT
-      MAX(b.id) AS max_id
+      MAX(e.id) AS max_id
     FROM
-      bodies b"
+      equipments e"
   )
   .load(_connection);
   return result;
 }
 
-// 素体取得
+// 装備取得
 // TODO WHERE句に分けずにON句の下にANDをつなげた方が実行計画短くなりそう・・・？
 pub fn find_by_id(
   _connection: &diesel::MysqlConnection, // 接続情報
   _id: i32,                              // 素体ID
   _user_id: Option<i32>,                 // ユーザID
-) -> Result<Vec<Robot>, diesel::result::Error> {
+) -> Result<Vec<Equipment>, diesel::result::Error> {
   let mut query = "
     SELECT
-      b.id ,
-      b.name ,
-      b.ruby ,
-      b.flavor ,
-      b.display_order ,
-      b.version
+      e.id ,
+      e.name ,
+      e.ruby ,
+      e.flavor ,
+      e.add_socket_count ,
+      e.display_order ,
+      e.version
     FROM
-      bodies b".to_string();
+      equipments e".to_string();
   if let Some(s) = _user_id {
     query += &format!("
       INNER JOIN 
-        having_bodies hb
+        having_equipments he
       ON
-        b.id = hb.body_id
+        e.id = he.equipment_id
       AND
-        hb.user_id = {}
+        he.user_id = {}
       ", s.to_string() ).to_string()
   }
   query += "
     WHERE
-      b.is_deleted = 0
+      e.is_deleted = 0
     AND
-      b.id = ?
+      e.id = ?
   ";
 
-  let result: Result<Vec<Robot>, diesel::result::Error> = sql_query( query )
+  let result: Result<Vec<Equipment>, diesel::result::Error> = sql_query( query )
     .bind::<Integer, _>(_id)
     .load(_connection);
   return result;
 }
 
-// 素体一覧取得
+// 装備一覧取得
 // TODO WHERE句に分けずにON句の下にANDをつなげた方が実行計画短くなりそう・・・？
-// TODO 取得した素体のみの表示でない場合に、どれが取得している素体かわからない
+// TODO 取得した装備のみの表示でない場合に、どれが取得している装備かわからない
 // TODO SQLインジェクション可能 ORDER BYのところ書き方変える必要あり
 pub fn find_list(
   _connection: &diesel::MysqlConnection, // 接続情報
   _user_id: Option<i32>,                 // ユーザID
-  _only_having: Option<bool>,            // 取得した素体のみを取得するかどうか
+  _only_having: Option<bool>,            // 取得した装備のみを取得するかどうか
   _sort_by: Option<String>,              // ソート種別
   _limit: Option<i32>,                   // 取得数
   _offset: Option<i32>,                  // 取得位置
-) -> Result<Vec<Robot>, diesel::result::Error> {
+) -> Result<Vec<Equipment>, diesel::result::Error> {
   let mut query = "
     SELECT
-      b.id ,
-      b.name ,
-      b.ruby ,
-      b.flavor ,
-      b.display_order,
-      b.version
+      e.id ,
+      e.name ,
+      e.ruby ,
+      e.flavor ,
+      e.add_socket_count ,
+      e.display_order,
+      e.version
     FROM
-      bodies b".to_string();
+      equipments e".to_string();
   if let Some(s) = _user_id {
     query += &format!("
       {}
-        having_bodies hb
+        having_equipments he
       ON
-        b.id = hb.body_id
+        e.id = he.equipment_id
       AND
-        hb.user_id = {}
+        he.user_id = {}
       ", 
       match _only_having {
         None => " LEFT JOIN ".to_string(),
@@ -141,7 +145,7 @@ pub fn find_list(
   }
   query += "
     WHERE
-      b.is_deleted = 0
+      e.is_deleted = 0
   ";
   if let Some(s) = _sort_by {
     query += &format!(" ORDER BY h.{}", s.to_string()).to_string();
@@ -153,28 +157,30 @@ pub fn find_list(
     query += &format!(" OFFSET {}", s.to_string()).to_string();
   }
 
-  let result: Result<Vec<Robot>, diesel::result::Error> = sql_query( query )
+  let result: Result<Vec<Equipment>, diesel::result::Error> = sql_query( query )
     .load(_connection);
   return result;
 }
 
-// 素体登録
+// 装備登録
 // 
-// TODO bodies.idにauto_incrementが必要
-// alter table bodies modify id int auto_increment;
+// TODO equipments.idにauto_incrementが必要
+// alter table equipments modify id int auto_increment;
 // 
 // TODO SQLインジェクション可能 ruby, flavorのところ書き方変える必要あり
 pub fn register(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _name: String,                         // 素体名
-  _ruby: Option<String>,                 // 素体名ルビ
+  _name: String,                         // 装備名
+  _ruby: Option<String>,                 // 装備名ルビ
   _flavor: Option<String>,               // フレーバーテキスト
+  _add_socket_count: i32,                // 装備時に増えるソケット数
   _display_order: i32,                   // 表示順
 ) -> Result<usize, diesel::result::Error> {
   let mut query = "
     INSERT INTO
-      bodies (
+      equipments (
         name ,
+        add_socket_count ,
         display_order ,
         is_deleted ,
         created_datetime ,
@@ -191,6 +197,7 @@ pub fn register(
     VALUES ( 
       ? , 
       ? , 
+      ? ,
       0 ,
       now() ,
       now() ,
@@ -205,28 +212,31 @@ pub fn register(
 
   println!("{}",query);
   let result = sql_query( query )
-    .bind::<Varchar, _>(_name)
-    .bind::<Integer, _>(_display_order)
-    .execute(_connection);
+  .bind::<Varchar, _>(_name)
+  .bind::<Integer, _>(_add_socket_count)
+  .bind::<Integer, _>(_display_order)
+  .execute(_connection);
   return result;
 }
 
-// 素体更新
+// 装備更新
 pub fn update(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _id: i32,                              // 素体ID
-  _name: String,                         // 素体名
-  _ruby: Option<String>,                 // 素体名ルビ
+  _id: i32,                              // 装備ID
+  _name: String,                         // 装備名
+  _ruby: Option<String>,                 // 装備名ルビ
   _flavor: Option<String>,               // フレーバーテキスト
+  _add_socket_count: i32,                // 装備時に増えるソケット数
   _display_order: i32,                   // 表示順
   _version: i32,                         // バージョン
 ) -> Result<usize, diesel::result::Error> {
   let mut query = "
     UPDATE
-      bodies
+      equipments
     SET
       name = ? ,
       display_order = ? ,
+      add_socket_count = ? ,
       updated_datetime = now() ,
       version = version + 1".to_string();
   if let Some(s) = _ruby {
@@ -244,21 +254,22 @@ pub fn update(
   let result: Result<usize, diesel::result::Error> = sql_query( query )
   .bind::<Varchar, _>(_name)
   .bind::<Integer, _>(_display_order)
+  .bind::<Integer, _>(_add_socket_count)
   .bind::<Integer, _>(_id)
   .bind::<Integer, _>(_version)
   .execute(_connection);
   return result;
 }
 
-// 素体削除
+// 装備削除
 pub fn delete(
   _connection: &diesel::MysqlConnection, // 接続情報
-  _id: i32,                              // 素体ID
+  _id: i32,                              // 装備ID
   _version: i32,                         // バージョン
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "UPDATE
-      bodies
+      equipments
     SET
       is_deleted = 1 ,
       updated_datetime = now() ,

@@ -110,7 +110,7 @@ pub async fn get_one(
 #[derive(Deserialize)]
 pub struct GetListRequest {
     only_having: Option<bool>, // 取得済みのみ取得するかどうか
-    sort_by: Option<i32>,      // ソート種別
+    sort_by: Option<String>,   // ソート種別
     limit: Option<i32>,        // 取得数
     offset: Option<i32>,       // 取得位置
 }
@@ -136,7 +136,7 @@ pub async fn get_list(
     // リクエスト取得
     let user_id = Some(3); // TODO 認証情報から取得
     let only_having = query.only_having;
-    let sort_by = query.sort_by;
+    let sort_by = query.sort_by.clone();
     let limit = query.limit;
     let offset = query.offset;
 

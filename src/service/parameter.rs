@@ -56,10 +56,14 @@ pub fn find_list(
       _limit,
       _offset
     ).unwrap();
+    let total_count = dao::parameter::find_list(
+      &connection,
+      None,None,None
+    ).unwrap().len();
 
     // データ加工
     return Ok(ParameterTemplate{
-      total_count: result.len() ,
+      total_count: total_count ,
       parameters: result.iter().map(|parameter| ParameterEntry {
         id: parameter.id,
         name: parameter.name.clone(),
