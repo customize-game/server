@@ -7,10 +7,11 @@ use crate::utils::establish_connection;
 
 // パラメータ
 pub struct ParameterEntry {
-  pub id: i32,            // パラメータID
-  pub name: String,       // パラメータ名
-  pub display_order: i32, // 表示順
-  pub version: i32,       // バージョン
+  pub id: i32,                // パラメータID
+  pub name: String,           // パラメータ名
+  pub parameter_type: String, // 種別
+  pub display_order: i32,     // 表示順
+  pub version: i32,           // バージョン
 }
 
 // パラメータ一覧
@@ -33,6 +34,7 @@ pub fn find_by_id(_id: i32, // パラメータID
     return Ok(ParameterEntry{
       id: parameter.id,
       name: parameter.name.clone(),
+      parameter_type: parameter.parameter_type.to_string(),
       display_order: parameter.display_order,
       version: parameter.version,
     });
@@ -67,6 +69,7 @@ pub fn find_list(
       parameters: result.iter().map(|parameter| ParameterEntry {
         id: parameter.id,
         name: parameter.name.clone(),
+        parameter_type: parameter.parameter_type.to_string(),
         display_order: parameter.display_order,
         version: parameter.version,
       })
@@ -79,6 +82,7 @@ pub fn find_list(
 // パラメータ登録
 pub fn register(
   _name: String,       // パラメータ名
+  _type: String,       // 種別
   _display_order: i32, // 表示順
 ) -> Result<usize, Error> {
   let connection = establish_connection();
@@ -87,6 +91,7 @@ pub fn register(
     let result = dao::parameter::register(
       &connection,
       _name,
+      _type,
       _display_order
     );
     // データ加工
@@ -99,6 +104,7 @@ pub fn register(
 pub fn update(
   _id: i32,            // パラメータID
   _name: String,       // パラメータ名
+  _type: String,       // 種別
   _display_order: i32, // 表示順
   _version: i32,       // バージョン
 ) -> Result<usize,Error> {
@@ -109,6 +115,7 @@ pub fn update(
       &connection,
       _id,
       _name,
+      _type,
       _display_order,
       _version
     );

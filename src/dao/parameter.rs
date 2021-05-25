@@ -7,16 +7,18 @@ use diesel::sql_types::Varchar;
 
 #[derive(Debug, Queryable)]
 pub struct Parameter {
-  pub id: i32,            // パラメータID
-  pub name: String,       // パラメータ名
-  pub display_order: i32, // 表示順
-  pub version: i32,       // バージョン
+  pub id: i32,                // パラメータID
+  pub name: String,           // パラメータ名
+  pub parameter_type: String, // 種別
+  pub display_order: i32,     // 表示順
+  pub version: i32,           // バージョン
 }
 impl QueryableByName<Mysql> for Parameter {
   fn build<R: diesel::row::NamedRow<Mysql>>(row: &R) -> diesel::deserialize::Result<Self> {
     return Ok(Parameter {
       id: row.get("id")?,
       name: row.get("name")?,
+      parameter_type: row.get("parameter_type")?,
       display_order: row.get("display_order")?,
       version: row.get("version")?,
     });
@@ -31,7 +33,8 @@ pub fn find_by_id(
     "SELECT
       p.id ,
       p.name ,
-      p.display_order,
+      p.parameter_type ,
+      p.display_order ,
       p.version
     FROM
       parameters p
@@ -58,6 +61,7 @@ pub fn find_list(
     SELECT
       p.id ,
       p.name ,
+      p.parameter_type ,
       p.display_order,
       p.version
     FROM
@@ -80,18 +84,17 @@ pub fn find_list(
 }
 
 // パラメータ登録
-// 
-// TODO parameters.idにauto_incrementが必要
-// alter table parameters modify id int auto_increment;
 pub fn register(
   _connection: &diesel::MysqlConnection, // 接続情報
   _name: String,                         // パラメータ名
+  _type: String,                         // 種別
   _display_order: i32,                   // 表示順
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "INSERT INTO
       parameters (
         name ,
+        parameter_type ,
         display_order ,
         is_deleted ,
         created_datetime ,
@@ -99,6 +102,7 @@ pub fn register(
         version
       )
       VALUES(
+        ? ,
         ? ,
         ? ,
         0 ,
@@ -109,6 +113,7 @@ pub fn register(
     ",
   )
   .bind::<Varchar, _>(_name)
+  .bind::<Varchar, _>(_type)
   .bind::<Integer, _>(_display_order)
   .execute(_connection);
   return result;
@@ -119,6 +124,7 @@ pub fn update(
   _connection: &diesel::MysqlConnection, // 接続情報
   _id: i32,                              // パラメータID
   _name: String,                         // パラメータ名
+  _type: String,                         // 種別
   _display_order: i32,                   // 表示順
   _version: i32,                         // バージョン
 ) -> Result<usize, diesel::result::Error> {
@@ -127,6 +133,7 @@ pub fn update(
       parameters
     SET
       name = ? ,
+      parameter_type = ? ,
       display_order = ? ,
       updated_datetime = now() ,
       version = version + 1
@@ -137,6 +144,7 @@ pub fn update(
     ",
   )
   .bind::<Varchar, _>(_name)
+  .bind::<Varchar, _>(_type)
   .bind::<Integer, _>(_display_order)
   .bind::<Integer, _>(_id)
   .bind::<Integer, _>(_version)

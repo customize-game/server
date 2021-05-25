@@ -64,7 +64,7 @@ make help
 ```shell
 make exec_rust
 cargo install diesel_cli --no-default-features --features mysql
-diesel migration run
+diesel migration run --database-url=mysql://root:root@db:3306/player_info
 ```
 
 

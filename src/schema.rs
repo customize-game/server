@@ -27,8 +27,10 @@ table! {
         body_id -> Integer,
         x -> Integer,
         y -> Integer,
-        operator -> Nullable<Varchar>,
+        operator -> Varchar,
         num -> Nullable<Integer>,
+        created_datetime -> Datetime,
+        updated_datetime -> Datetime,
         version -> Integer,
     }
 }
@@ -37,7 +39,7 @@ table! {
     body_statuses (body_id, parameter_id) {
         body_id -> Integer,
         parameter_id -> Integer,
-        num -> Integer,
+        num -> Nullable<Integer>,
         created_datetime -> Datetime,
         updated_datetime -> Datetime,
         version -> Integer,
@@ -68,7 +70,7 @@ table! {
 }
 
 table! {
-    equipment_status (equipment_id, parameter_id) {
+    equipment_statuses (equipment_id, parameter_id) {
         equipment_id -> Integer,
         parameter_id -> Integer,
         num -> Nullable<Integer>,
@@ -84,9 +86,9 @@ table! {
         name -> Varchar,
         ruby -> Nullable<Varchar>,
         flavor -> Nullable<Text>,
-        add_socket_count -> Nullable<Integer>,
-        display_order -> Nullable<Integer>,
-        is_deleted -> Nullable<Tinyint>,
+        add_socket_count -> Integer,
+        display_order -> Integer,
+        is_deleted -> Tinyint,
         created_datetime -> Datetime,
         updated_datetime -> Datetime,
         version -> Integer,
@@ -161,6 +163,9 @@ table! {
         id -> Integer,
         name -> Varchar,
         display_order -> Integer,
+        is_deleted -> Tinyint,
+        created_datetime -> Datetime,
+        updated_datetime -> Datetime,
         version -> Integer,
     }
 }
@@ -182,6 +187,7 @@ table! {
         name -> Varchar,
         user_id -> Integer,
         body_id -> Integer,
+        display_order -> Integer,
         created_datetime -> Datetime,
         updated_datetime -> Datetime,
         version -> Integer,
@@ -228,7 +234,11 @@ table! {
     parameters (id) {
         id -> Integer,
         name -> Varchar,
+        parameter_type -> Varchar,
         display_order -> Integer,
+        is_deleted -> Tinyint,
+        created_datetime -> Datetime,
+        updated_datetime -> Datetime,
         version -> Integer,
     }
 }
@@ -240,6 +250,13 @@ table! {
         created_datetime -> Datetime,
         updated_datetime -> Datetime,
         version -> Integer,
+    }
+}
+
+table! {
+    parts_data (id) {
+        id -> Integer,
+        name -> Text,
     }
 }
 
@@ -271,7 +288,7 @@ allow_tables_to_appear_in_same_query!(
     body_statuses,
     designated_place_to_equipment_by_effects,
     equipment_mysets,
-    equipment_status,
+    equipment_statuses,
     equipments,
     equipments_equipable_in_hoge_interfaces,
     equipped_when_increasing_hoge_interfaces,
@@ -287,6 +304,7 @@ allow_tables_to_appear_in_same_query!(
     parameter_chips,
     parameters,
     participants,
+    parts_data,
     results,
     users,
 );

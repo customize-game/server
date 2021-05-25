@@ -107,7 +107,6 @@ pub fn register_free_sockets(
 }
 
 // 空きソケット削除
-// TODO versionの扱い検討
 pub fn delete_free_sockets(
   _connection: &diesel::MysqlConnection, // 接続情報
   _id: i32,                              // 素体ID

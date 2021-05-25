@@ -96,7 +96,6 @@ pub fn register_increasing_hoge_interfaces(
 }
 
 // 装備すると増加するhogeインタフェース削除
-// TODO versionの扱い検討
 pub fn delete_increasing_hoge_interfaces(
   _connection: &diesel::MysqlConnection, // 接続情報
   _id: i32,                              // 装備ID

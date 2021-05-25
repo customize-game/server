@@ -44,7 +44,8 @@ lazy_static! {
     };
 }
 
-
+// TODO: 環境変数にDATABASE_URLを追加
+// DATABASE_URLがないとdiesel migration runが実行できない
 pub fn establish_connection() -> MysqlConnection {
     let database_url = format!("mysql://{}:{}@db:{}/{}", 
                                CONFIG.db_user,

@@ -80,10 +80,6 @@ pub fn find_list(
 }
 
 // hogeインタフェース登録
-// 
-// TODO hoge_interfaces.idにauto_incrementが必要
-// alter table hoge_interfaces modify id int auto_increment;
-// 
 pub fn register(
   _connection: &diesel::MysqlConnection, // 接続情報
   _name: String,                         // hogeインタフェース名

@@ -43,7 +43,7 @@ pub fn find_equipment_statuses_list(
     FROM
       parameters p
     INNER JOIN
-      equipment_status es
+      equipment_statuses es
     ON
       p.id = es.parameter_id
     AND
@@ -67,7 +67,7 @@ pub fn register_equipment_statuses(
   }
   let mut query = "
     INSERT INTO
-      equipment_status (
+      equipment_statuses (
         equipment_id ,
         parameter_id ,
         num ,
@@ -110,7 +110,7 @@ pub fn delete_equipment_statuses(
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "DELETE FROM
-      equipment_status
+      equipment_statuses
     WHERE
       equipment_id = ?
     ",

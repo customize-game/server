@@ -26,7 +26,7 @@ pub async fn get_one(
     return HttpResponse::Ok().json(GetOneResponseEntry {
         id: parameter.id,
         name: parameter.name,
-        parameter_type: "having".to_string(),
+        parameter_type: parameter.parameter_type.to_string(),
         display_order: parameter.display_order,
         version: parameter.version,
     });
@@ -40,7 +40,6 @@ pub struct GetListRequest {
     offset: Option<i32>,     // 取得位置
 }
 // パラメータ一覧取得APIレスポンスのパラメータ
-// TODO 種別(あるだけで有効か計算するか)のenumをDBに追加
 #[derive(Serialize, Deserialize, Debug)]
 struct ParameterEntryOfGetListResponseEntry {
     id: i32,                // パラメータID
@@ -83,7 +82,7 @@ pub async fn get_list(
             .map(|parameter| ParameterEntryOfGetListResponseEntry {
                 id: parameter.id,
                 name: parameter.name.to_string(),
-                parameter_type: "having".to_string(),
+                parameter_type: parameter.parameter_type.to_string(),
                 display_order: parameter.display_order,
                 version: parameter.version,
             })
@@ -112,11 +111,13 @@ pub async fn register(
 ) -> impl Responder {
     // リクエスト取得
     let name = request_body.name.clone();
+    let parameter_type = request_body.parameter_type.clone();
     let display_order = request_body.display_order;
 
     // データ登録
     let register_count = service::parameter::register(
         name, 
+        parameter_type,
         display_order
     ).unwrap();
 
@@ -149,6 +150,7 @@ pub async fn update(
 ) -> impl Responder {
     // リクエスト取得
     let name = request_body.name.clone();
+    let parameter_type = request_body.parameter_type.clone();
     let display_order = request_body.display_order;
     let version = request_body.version;
 
@@ -156,6 +158,7 @@ pub async fn update(
     let update_count = service::parameter::update(
         parameter_id,
         name,
+        parameter_type,
         display_order,
         version ,
     ).unwrap();

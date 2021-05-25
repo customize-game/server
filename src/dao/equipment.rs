@@ -163,10 +163,6 @@ pub fn find_list(
 }
 
 // 装備登録
-// 
-// TODO equipments.idにauto_incrementが必要
-// alter table equipments modify id int auto_increment;
-// 
 // TODO SQLインジェクション可能 ruby, flavorのところ書き方変える必要あり
 pub fn register(
   _connection: &diesel::MysqlConnection, // 接続情報

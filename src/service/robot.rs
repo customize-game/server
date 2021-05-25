@@ -138,10 +138,18 @@ pub fn find_list(
       _limit,
       _offset
     ).unwrap();
+    let total_count = dao::robot::find_list(
+      &connection,
+      None,
+      _only_having,
+      None,
+      None,
+      None
+    ).unwrap().len();
 
     // データ加工
     return Ok(RobotTemplate {
-      total_count: result.len(),
+      total_count: total_count ,
       robots: result.iter().map(|robot| RobotEntry{
         id: robot.id,
         name: robot.name.to_string(),

@@ -113,14 +113,47 @@ pub struct GetListRequest {
     limit: Option<i32>,   // 取得数
     offset: Option<i32>,  // 取得位置
 }
+// ステータス
+#[derive(Serialize, Deserialize, Debug)]
+struct StatusOfGetListResponseEntry {
+    body_id: i32,       // 素体ID
+    parameter_id: i32,  // パラメータID
+    num: i32,           // 増減値
+    name: String,       // パラメータ名
+    display_order: i32, // 表示順
+    version: i32,       // バージョン
+}
+// hogeインタフェース
+#[derive(Serialize, Deserialize, Debug)]
+struct HogeInterfaceOfGetListResponseEntry {
+    body_id: i32,           // 素体ID
+    hoge_interface_id: i32, // hogeインタフェースID
+    name: String,           // hogeインタフェース名
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
+}
+// ソケット
+#[derive(Serialize, Deserialize, Debug)]
+struct SocketOfGetListResponseEntry {
+    body_id: i32,             // 素体ID
+    x: i32,                   // X座標
+    y: i32,                   // Y座標
+    operator: Option<String>, // 演算子
+    num: Option<i32>,         // 増減値
+    version: i32,             // バージョン
+}
 // ロボット取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct RobotEntryOfGetListResponseEntry {
-    id: i32,                // ロボットID
-    name: String,           // ロボット名
-    ruby: Option<String>,   // ルビ
-    flavor: Option<String>, // フレーバーテキスト
-    display_order: i32,     // 表示順
+    id: i32,                                                   // ロボットID
+    name: String,                                              // ロボット名
+    ruby: Option<String>,                                      // ルビ
+    flavor: Option<String>,                                    // フレーバーテキスト
+    display_order: i32,                                        // 表示順
+    version: i32,                                              // バージョン
+    statuses: Vec<StatusOfGetListResponseEntry>,               // ステータス
+    hoge_interfaces: Vec<HogeInterfaceOfGetListResponseEntry>, // hogeインタフェース
+    sockets: Vec<SocketOfGetListResponseEntry>,                // ソケット
 }
 // ロボット一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
@@ -162,6 +195,42 @@ pub async fn get_list(
                 ruby: robot.ruby.clone(),
                 flavor: robot.flavor.clone(),
                 display_order: robot.display_order,
+                version: robot.version,
+                statuses: robot
+                    .statuses
+                    .iter()
+                    .map(|status| StatusOfGetListResponseEntry {
+                        body_id: status.body_id,
+                        parameter_id: status.parameter_id,
+                        num: status.num,
+                        name: status.name.to_string(),
+                        display_order: status.display_order,
+                        version: status.version,
+                    })
+                    .collect(),
+                hoge_interfaces: robot
+                    .hoge_interfaces
+                    .iter()
+                    .map(|hoge_interface| HogeInterfaceOfGetListResponseEntry {
+                        body_id: hoge_interface.body_id,
+                        hoge_interface_id: hoge_interface.hoge_interface_id,
+                        name: hoge_interface.name.to_string(),
+                        display_order: hoge_interface.display_order,
+                        version: hoge_interface.version,
+                    })
+                    .collect(),
+                sockets: robot
+                    .sockets
+                    .iter()
+                    .map(|socket| SocketOfGetListResponseEntry {
+                        body_id: socket.body_id,
+                        x: socket.x,
+                        y: socket.y,
+                        operator: socket.operator.clone(),
+                        num: socket.num,
+                        version: socket.version,
+                    })
+                    .collect(),
             })
             .collect(),
     });
