@@ -1,0 +1,1 @@
+ALTER TABLE body_statuses MODIFY COLUMN num int COMMENT '増減値' DEFAULT 0;

@@ -5,43 +5,41 @@ use server::service;
 // ステータス
 #[derive(Serialize, Deserialize, Debug)]
 struct StatusOfGetOneResponseEntry {
-    body_id: u32,           // 素体ID
-    parameter_id: u32,      // パラメータID
-    num: Option<u32>,       // 増減値
-    status_version: u32,    // ステータスバージョン
-    name: String,           // パラメータ名
-    display_order: u32,     // 表示順
-    parameter_version: u32, // パラメータバージョン
+    body_id: i32,       // 素体ID
+    parameter_id: i32,  // パラメータID
+    num: i32,           // 増減値
+    name: String,       // パラメータ名
+    display_order: i32, // 表示順
+    version: i32,       // バージョン
 }
 // hogeインタフェース
 #[derive(Serialize, Deserialize, Debug)]
 struct HogeInterfaceOfGetOneResponseEntry {
-    body_id: u32,                        // 素体ID
-    hoge_interface_id: u32,              // hogeインタフェースID
-    bodies_hoge_interfaces_version: u32, // 素体：hogeインタフェースバージョン
-    name: String,                        // hogeインタフェース名
-    display_order: u32,                  // 表示順
-    hoge_interface_version: u32,         // hogeインタフェースバージョン
+    body_id: i32,           // 素体ID
+    hoge_interface_id: i32, // hogeインタフェースID
+    name: String,           // hogeインタフェース名
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // ソケット
 #[derive(Serialize, Deserialize, Debug)]
 struct SocketOfGetOneResponseEntry {
-    body_id: u32,             // 素体ID
-    x: u32,                   // X座標
-    y: u32,                   // Y座標
+    body_id: i32,             // 素体ID
+    x: i32,                   // X座標
+    y: i32,                   // Y座標
     operator: Option<String>, // 演算子
-    num: Option<u32>,         // 増減値
-    version: u32,             // バージョン
+    num: Option<i32>,         // 増減値
+    version: i32,             // バージョン
 }
 // ロボット取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: u32,                                                  // ロボットID
+    id: i32,                                                  // ロボットID
     name: String,                                             // ロボット名
     ruby: Option<String>,                                     // ルビ
     flavor: Option<String>,                                   // フレーバーテキスト
-    display_order: u32,                                       // 表示順
-    version: u32,                                             // バージョン
+    display_order: i32,                                       // 表示順
+    version: i32,                                             // バージョン
     having: bool,                                             // 取得済みかどうか
     statuses: Vec<StatusOfGetOneResponseEntry>,               // ステータス
     hoge_interfaces: Vec<HogeInterfaceOfGetOneResponseEntry>, // hogeインタフェース
@@ -50,12 +48,16 @@ struct GetOneResponseEntry {
 // ロボット取得API
 #[get("/api/v1/game/robots/{body_id}")]
 pub async fn get_one(
-    web::Path(body_id): web::Path<u32>, // ロボットID - パスパラメータ
+    web::Path(body_id): web::Path<i32>, // ロボットID - パスパラメータ
 ) -> impl Responder {
-    // リクエスト取得
-    let body_id: Option<u32> = Some(body_id);
+    
+    let user_id = Some(3); // TODO 認証情報から取得
+
     // データ取得
-    let robot = service::robot::find_by_id(body_id.unwrap());
+    let robot = service::robot::find_by_id(
+        body_id,
+        user_id,
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetOneResponseEntry {
@@ -73,10 +75,9 @@ pub async fn get_one(
                 body_id: status.body_id,
                 parameter_id: status.parameter_id,
                 num: status.num,
-                status_version: status.status_version,
                 name: status.name.to_string(),
                 display_order: status.display_order,
-                parameter_version: status.parameter_version,
+                version: status.version,
             })
             .collect(),
         hoge_interfaces: robot
@@ -85,10 +86,9 @@ pub async fn get_one(
             .map(|hoge_interface| HogeInterfaceOfGetOneResponseEntry {
                 body_id: hoge_interface.body_id,
                 hoge_interface_id: hoge_interface.hoge_interface_id,
-                bodies_hoge_interfaces_version: hoge_interface.bodies_hoge_interfaces_version,
                 name: hoge_interface.name.to_string(),
                 display_order: hoge_interface.display_order,
-                hoge_interface_version: hoge_interface.hoge_interface_version,
+                version: hoge_interface.version,
             })
             .collect(),
         sockets: robot
@@ -110,22 +110,22 @@ pub async fn get_one(
 #[derive(Deserialize)]
 pub struct GetListRequest {
     only_having: Option<bool>, // 取得済みのみ取得するかどうか
-    sort_by: Option<u32>,      // ソート種別
-    limit: Option<u32>,        // 取得数
-    offset: Option<u32>,       // 取得位置
+    sort_by: Option<String>,   // ソート種別
+    limit: Option<i32>,        // 取得数
+    offset: Option<i32>,       // 取得位置
 }
 // ロボット一覧取得APIレスポンスのロボット
 #[derive(Serialize, Deserialize, Debug)]
 struct RobotEntryOfGetListResponseEntry {
-    id: u32,            // ロボットID
+    id: i32,            // ロボットID
     name: String,       // ロボット名
     having: bool,       // 取得済みかどうか
-    display_order: u32, // 表示順
+    display_order: i32, // 表示順
 }
 // ロボット一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetListResponseEntry {
-    total_count: u32,                              // 合計数
+    total_count: usize,                              // 合計数
     robots: Vec<RobotEntryOfGetListResponseEntry>, // 装備一覧
 }
 // ロボット一覧取得API
@@ -136,12 +136,18 @@ pub async fn get_list(
     // リクエスト取得
     let user_id = Some(3); // TODO 認証情報から取得
     let only_having = query.only_having;
-    let sort_by = query.sort_by;
+    let sort_by = query.sort_by.clone();
     let limit = query.limit;
     let offset = query.offset;
 
     // データ取得
-    let robots = service::robot::find_list(user_id, only_having, sort_by, limit, offset);
+    let robots = service::robot::find_list(
+        user_id, 
+        only_having, 
+        sort_by, 
+        limit, 
+        offset
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetListResponseEntry {

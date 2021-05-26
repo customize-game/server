@@ -1,0 +1,1 @@
+RENAME TABLE equipment_status TO equipment_statuses;

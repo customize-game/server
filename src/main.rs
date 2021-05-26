@@ -1,11 +1,22 @@
 use actix_web::{ App, HttpServer};
+use actix_web::http::header;
+use actix_cors::Cors;
 mod controller;
 mod utils;
 
 #[actix_rt::main]
 async fn main() -> Result<(), actix_web::Error> {
-    HttpServer::new(
-        || App::new()
+    HttpServer::new(|| {
+        // TODO ちゃんと設定する
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST","PUT","DELETE"])
+            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+            .allowed_header(header::CONTENT_TYPE)
+            .max_age(3600);
+
+        App::new()
+            .wrap(cors)
             .service(controller::index::index)
 
             .service(controller::v1::from_game::equipment::get_one)
@@ -81,7 +92,7 @@ async fn main() -> Result<(), actix_web::Error> {
 
             .service(controller::v1::from_mobile::user::get_myself)
             .service(controller::v1::from_mobile::user::register)
-    )
+    })
     .bind(format!("0.0.0.0:{}", utils::CONFIG.server_port))?
     .run()
     .await?;

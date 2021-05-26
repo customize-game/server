@@ -5,29 +5,29 @@ use server::service;
 // パラメータ取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetOneResponseEntry {
-    id: u32,            // パラメータID
-    name: String,       // パラメータ名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
-    version: u32,       // バージョン
+    id: i32,                // パラメータID
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // パラメータ取得API
+// ex.)
+//    curl -X GET -v http://localhost:5000/api/v1/manager/parameters/1 | jq
 #[get("/api/v1/manager/parameters/{parameter_id}")]
 pub async fn get_one(
-    web::Path(parameter_id): web::Path<u32>, // パラメータID - パスパラメータ
+    web::Path(parameter_id): web::Path<i32>, // パラメータID - パスパラメータ
 ) -> impl Responder {
-    // リクエスト取得
-    let parameter_id: Option<u32> = Some(parameter_id);
 
     // データ取得
-    let parameter = service::parameter::find_by_id(parameter_id.unwrap());
+    let parameter = service::parameter::find_by_id(parameter_id).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetOneResponseEntry {
         id: parameter.id,
         name: parameter.name,
+        parameter_type: parameter.parameter_type.to_string(),
         display_order: parameter.display_order,
-        is_deleted: parameter.is_deleted,
         version: parameter.version,
     });
 }
@@ -35,36 +35,43 @@ pub async fn get_one(
 // パラメータ一覧取得APIクエリパラメータ
 #[derive(Deserialize)]
 pub struct GetListRequest {
-    sort_by: Option<u32>, // ソート種別
-    limit: Option<u32>,   // 取得数
-    offset: Option<u32>,  // 取得位置
+    sort_by: Option<String>, // ソート種別
+    limit: Option<i32>,      // 取得数
+    offset: Option<i32>,     // 取得位置
 }
 // パラメータ一覧取得APIレスポンスのパラメータ
 #[derive(Serialize, Deserialize, Debug)]
 struct ParameterEntryOfGetListResponseEntry {
-    id: u32,            // パラメータID
-    name: String,       // パラメータ名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
+    id: i32,                // パラメータID
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
+    version: i32,
 }
 // パラメータ一覧取得APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct GetListResponseEntry {
-    total_count: u32,                                      // 合計数
+    total_count: usize,                                    // 合計数
     parameters: Vec<ParameterEntryOfGetListResponseEntry>, // パラメータ一覧
 }
 // パラメータ一覧取得API
+// ex.)
+//   curl -X GET -v http://localhost:5000/api/v1/manager/parameters | jq
 #[get("/api/v1/manager/parameters")]
 pub async fn get_list(
     query: web::Query<GetListRequest>, // クエリパラメータ
 ) -> impl Responder {
     // リクエスト取得
-    let sort_by = query.sort_by;
+    let sort_by = query.sort_by.clone();
     let limit = query.limit;
     let offset = query.offset;
 
     // データ取得
-    let parameters = service::parameter::find_list(sort_by, limit, offset);
+    let parameters = service::parameter::find_list(
+        sort_by, 
+        limit, 
+        offset
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(GetListResponseEntry {
@@ -75,8 +82,9 @@ pub async fn get_list(
             .map(|parameter| ParameterEntryOfGetListResponseEntry {
                 id: parameter.id,
                 name: parameter.name.to_string(),
+                parameter_type: parameter.parameter_type.to_string(),
                 display_order: parameter.display_order,
-                is_deleted: parameter.is_deleted,
+                version: parameter.version,
             })
             .collect(),
     });
@@ -85,103 +93,111 @@ pub async fn get_list(
 // パラメータ登録APIリクエスト
 #[derive(Deserialize)]
 pub struct RegisterRequestBody {
-    name: String,       // パラメータ名
-    display_order: u32, // 表示順
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
 }
 // パラメータ登録APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct RegisterResponseEntry {
-    id: u32,            // パラメータID
-    name: String,       // パラメータ名
-    display_order: u32, // 表示順
+    register_count: usize, // 登録件数
 }
 // パラメータ登録API
+// ex.)
+//   curl -X POST -H "Content-type: application/json" -v http://localhost:5000/api/v1/manager/parameters --data '{ "name":"攻撃力" , "display_order":2 }' | jq
 #[post("/api/v1/manager/parameters")]
 pub async fn register(
     request_body: web::Json<RegisterRequestBody>, // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let name = request_body.name.to_string();
+    let name = request_body.name.clone();
+    let parameter_type = request_body.parameter_type.clone();
     let display_order = request_body.display_order;
 
     // データ登録
-    let parameter = service::parameter::register(name, display_order);
+    let register_count = service::parameter::register(
+        name, 
+        parameter_type,
+        display_order
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(RegisterResponseEntry {
-        id: parameter.id,
-        name: parameter.name,
-        display_order: parameter.display_order,
+        register_count: register_count,
     });
 }
 
 // パラメータ更新APIリクエスト
 #[derive(Deserialize)]
 pub struct UpdateRequestBody {
-    name: String,       // パラメータ名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
+    name: String,           // パラメータ名
+    parameter_type: String, // 種別
+    display_order: i32,     // 表示順
+    version: i32,           // バージョン
 }
 // パラメータ更新APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct UpdateResponseEntry {
-    id: u32,            // パラメータID
-    name: String,       // パラメータ名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
-    version: u32,       // バージョン
+    update_count: usize, // 更新件数
 }
 // パラメータ更新API
+// ex.)
+//   curl -X PUT -H "Content-type: application/json" -v http://localhost:5000/api/v1/manager/parameters/3 --data '{ "name":"防御力" , "display_order":29, "version":0 }' | jq
 #[put("/api/v1/manager/parameters/{parameter_id}")]
 pub async fn update(
-    web::Path(parameter_id): web::Path<u32>, // パラメータID - パスパラメータ
+    web::Path(parameter_id): web::Path<i32>, // パラメータID - パスパラメータ
     request_body: web::Json<UpdateRequestBody>, // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let parameter_id: Option<u32> = Some(parameter_id);
-    let name = request_body.name.to_string();
+    let name = request_body.name.clone();
+    let parameter_type = request_body.parameter_type.clone();
     let display_order = request_body.display_order;
-    let is_deleted = request_body.is_deleted;
+    let version = request_body.version;
 
     // データ更新
-    let parameter =
-        service::parameter::update(parameter_id.unwrap(), name, display_order, is_deleted);
+    let update_count = service::parameter::update(
+        parameter_id,
+        name,
+        parameter_type,
+        display_order,
+        version ,
+    ).unwrap();
+
     // レスポンス加工
     return HttpResponse::Ok().json(UpdateResponseEntry {
-        id: parameter.id,
-        name: parameter.name,
-        display_order: parameter.display_order,
-        is_deleted: parameter.is_deleted,
-        version: parameter.version,
+        update_count: update_count,
     });
 }
 
+// hogeインタフェース削除APIリクエスト
+#[derive(Deserialize)]
+pub struct DeleteRequestBody {
+    version: i32, // バージョン
+}
 // パラメータ削除APIレスポンス
 #[derive(Serialize, Deserialize, Debug)]
 struct DeleteResponseEntry {
-    id: u32,            // パラメータID
-    name: String,       // パラメータ名
-    display_order: u32, // 表示順
-    is_deleted: bool,   // 削除済みかどうか
-    version: u32,       // バージョン
+    delete_count: usize, // 削除件数
 }
 // パラメータ削除API
+// ex.)
+//   curl -X DELETE -H "Content-type: application/json" -v http://localhost:5000/api/v1/manager/parameters/3 --data '{ "version":1 }' | jq
 #[delete("/api/v1/manager/parameters/{parameter_id}")]
 pub async fn delete(
-    web::Path(parameter_id): web::Path<u32>, // パラメータID - パスパラメータ
+    web::Path(parameter_id): web::Path<i32>, // パラメータID - パスパラメータ
+    request_body: web::Json<DeleteRequestBody>,   // リクエストボディ
 ) -> impl Responder {
     // リクエスト取得
-    let parameter_id: Option<u32> = Some(parameter_id);
+    let version = request_body.version;
 
     // データ削除
-    let parameter = service::parameter::delete(parameter_id.unwrap());
+    let delete_count = service::parameter::delete(
+        parameter_id, 
+        version
+    ).unwrap();
 
     // レスポンス加工
     return HttpResponse::Ok().json(DeleteResponseEntry {
-        id: parameter.id,
-        name: parameter.name,
-        display_order: parameter.display_order,
-        is_deleted: parameter.is_deleted,
-        version: parameter.version,
+        delete_count: delete_count,
     });
 }
