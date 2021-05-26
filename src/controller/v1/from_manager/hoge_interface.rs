@@ -112,6 +112,7 @@ pub async fn register(
         display_order
     ).unwrap();
 
+
     // レスポンス加工
     return HttpResponse::Ok().json(RegisterResponseEntry {
         register_count: register_count,
@@ -183,6 +184,7 @@ pub async fn delete(
         hoge_interface_id, 
         version
     ).unwrap();
+
 
     // レスポンス加工
     return HttpResponse::Ok().json(DeleteResponseEntry {

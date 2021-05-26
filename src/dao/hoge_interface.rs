@@ -118,6 +118,10 @@ pub fn update(
   _name: String,                         // hogeインタフェース名
   _display_order: i32,                   // 表示順
   _version: i32,                         // バージョン
+  _id: i32, // hogeインタフェースID
+  _name: String, // hogeインタフェース名
+  _display_order: i32, // 表示順
+  _version: i32, // バージョン
 ) -> Result<usize, diesel::result::Error> {
   let result: Result<usize, diesel::result::Error> = sql_query(
     "UPDATE
