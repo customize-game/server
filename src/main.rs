@@ -1,10 +1,11 @@
-use actix_web::{ App, HttpServer};
-use actix_web::http::header;
-use actix_cors::Cors;
-mod controller;
-mod utils;
 mod server;
+mod domains;
+mod infrastructures;
+mod usecases;
 
+
+
+// メイン処理
 fn main() -> Result<(), actix_web::Error> {
     server::server::run()
 }

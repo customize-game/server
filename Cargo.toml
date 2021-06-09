@@ -11,7 +11,7 @@ actix-web = "^3"
 actix-cors = "0.5.3"
 actix-rt = "1.1.1"
 thiserror = "1.0.20"
-diesel = { version = "*", features = ["mysql"] }
+diesel = { version = "*", features =[ "mysql", "r2d2", "chrono" ] }
 dotenv = "0.15.0"
 config = "0.10.1"
 serde = "1.0.123"

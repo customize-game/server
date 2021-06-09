@@ -2,6 +2,19 @@ DROP DATABASE IF EXISTS player_info;
 CREATE DATABASE player_info;
 USE player_info;
 
+CREATE TABLE login(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  pass TEXT NOT NULL
+);
+
+INSERT INTO login VALUES('1', 'John 1Doe', 'sample1@sample.com', HEX(AES_ENCRYPT('pass1', SHA2('sample', 512))));
+INSERT INTO login VALUES('2', 'John 2Doe', 'sample2@sample.com', HEX(AES_ENCRYPT('pass2', SHA2('sample', 512))));
+INSERT INTO login VALUES('3', 'John 3Doe', 'sample3@sample.com', HEX(AES_ENCRYPT('pass3', SHA2('sample', 512))));
+INSERT INTO login VALUES('4', 'John 4Doe', 'sample4@sample.com', HEX(AES_ENCRYPT('pass4', SHA2('sample', 512))));
+INSERT INTO login VALUES('5', 'John 5Doe', 'sample5@sample.com', HEX(AES_ENCRYPT('pass5', SHA2('sample', 512))));
+
 CREATE TABLE parts_data(
   id INT PRIMARY KEY AUTO_INCREMENT,
   name TEXT NOT NULL
